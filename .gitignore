@@ -1,0 +1,40 @@
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+plan.txt
+*.tfvars
+!*.tfvars.example
+
+# GitHub Actions WIF credentials (created by google-github-actions/auth at runtime)
+gha-creds-*.json
+
+# Local setup
+cicd/setup.env
+
+# Go
+/api/api
+
+# SvelteKit + Node
+web/node_modules/
+web/.svelte-kit/
+web/build/
+web/.env
+web/.env.*
+!web/.env.example
+web/.vite/
+*.tsbuildinfo
+
+# Original design transcript — kept locally for reference, not for the repo
+claude.ai-online-chat-design.md
+
+# macOS
+.DS_Store
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp

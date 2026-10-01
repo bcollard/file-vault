@@ -1,0 +1,88 @@
+name: Terraform plan (dev)
+
+on:
+  pull_request:
+    paths:
+      - 'terraform/**'
+      - '.github/workflows/terraform-plan.yaml'
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  WIF_PROVIDER: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ vars.WIF_POOL || 'gitops-pool' }}/providers/${{ vars.WIF_PROVIDER || 'gh-provider' }}
+  WIF_SA: gha-tf-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+  TF_WORKDIR: ./terraform/envs/dev
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SA }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.9
+          terraform_wrapper: false
+
+      - name: terraform fmt
+        run: terraform -chdir=./terraform fmt -check -recursive
+
+      - name: terraform init
+        run: terraform -chdir=${{ env.TF_WORKDIR }} init
+
+      - name: terraform validate
+        run: terraform -chdir=${{ env.TF_WORKDIR }} validate
+
+      - name: terraform plan
+        id: plan
+        run: |
+          set +e
+          terraform -chdir=${{ env.TF_WORKDIR }} plan -no-color -out=tfplan
+          rc=$?
+          terraform -chdir=${{ env.TF_WORKDIR }} show -no-color tfplan > "$RUNNER_TEMP/plan.txt"
+          exit $rc
+
+      - name: Post plan to PR
+        if: always() && github.event.pull_request
+        uses: actions/github-script@v7
+        env:
+          PLAN_FILE: ${{ runner.temp }}/plan.txt
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.existsSync(process.env.PLAN_FILE)
+              ? fs.readFileSync(process.env.PLAN_FILE, 'utf8')
+              : '(plan failed before output)';
+            const max = 60000;
+            const truncated = plan.length > max
+              ? plan.slice(0, max) + '\n\n…(truncated — see job log for full plan)'
+              : plan;
+            const body = [
+              `### Terraform plan — \`${process.env.TF_WORKDIR}\``,
+              '',
+              '<details><summary>Click to expand</summary>',
+              '',
+              '```hcl',
+              truncated,
+              '```',
+              '</details>',
+            ].join('\n');
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body,
+            });

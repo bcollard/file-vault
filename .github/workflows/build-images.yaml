@@ -1,0 +1,78 @@
+name: Build and push images
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'web/**'
+      - '.github/workflows/build-images.yaml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION || 'europe-west9' }}
+  AR_REPO: ${{ vars.AR_REPO || 'file-vault' }}
+  WIF_PROVIDER: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ vars.WIF_POOL || 'gitops-pool' }}/providers/${{ vars.WIF_PROVIDER || 'gh-provider' }}
+  WIF_SA: gha-build-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: api
+            context: ./api
+          - service: web
+            context: ./web
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth via Workload Identity Federation
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: ${{ env.WIF_SA }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          push: true
+          provenance: false
+          tags: |
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ matrix.service }}:${{ github.sha }}
+            ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ matrix.service }}:latest
+          cache-from: type=registry,ref=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ matrix.service }}:buildcache
+          cache-to: type=registry,ref=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ matrix.service }}:buildcache,mode=max
+
+      - name: Summary
+        run: |
+          IMAGE="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/${{ matrix.service }}:${GITHUB_SHA}"
+          {
+            echo "## ${{ matrix.service }} image pushed"
+            echo ""
+            echo "Pinned tag (copy into \`terraform/envs/dev/terraform.tfvars\`):"
+            echo ""
+            echo '```'
+            echo "${{ matrix.service }}_image = \"${IMAGE}\""
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
