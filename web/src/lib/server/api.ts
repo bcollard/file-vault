@@ -1,5 +1,5 @@
 import { GoogleAuth } from 'google-auth-library';
-import { env } from '$env/dynamic/private';
+import { API_AUDIENCE, API_URL, PREVIEW_MODE } from '$app/env/private';
 import { PreviewClient } from './preview';
 import type {
 	AdminShare,
@@ -123,13 +123,13 @@ let cached: API | undefined;
 
 export function getApi(): API {
 	if (cached) return cached;
-	if (env.PREVIEW_MODE) {
+	if (PREVIEW_MODE) {
 		cached = new PreviewClient();
 		return cached;
 	}
-	if (!env.API_URL) {
+	if (!API_URL) {
 		throw new Error('API_URL not set (and PREVIEW_MODE not enabled)');
 	}
-	cached = new HttpClient(env.API_URL, env.API_AUDIENCE || env.API_URL);
+	cached = new HttpClient(API_URL, API_AUDIENCE || API_URL);
 	return cached;
 }
