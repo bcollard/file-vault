@@ -11,19 +11,19 @@
 		CheckCircle2,
 		AlertTriangle
 	} from 'lucide-svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import CardHeader from '$lib/components/ui/CardHeader.svelte';
-	import CardTitle from '$lib/components/ui/CardTitle.svelte';
-	import CardDescription from '$lib/components/ui/CardDescription.svelte';
-	import CardContent from '$lib/components/ui/CardContent.svelte';
-	import CardFooter from '$lib/components/ui/CardFooter.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Badge from '$lib/components/ui/Badge.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import Label from '$lib/components/ui/Label.svelte';
-	import CopyField from '$lib/components/CopyField.svelte';
-	import { humanSize, shortTime, relativeTime } from '$lib/utils';
-	import type { TokenStatus } from '$lib/types';
+	import Card from '#lib/components/ui/Card.svelte';
+	import CardHeader from '#lib/components/ui/CardHeader.svelte';
+	import CardTitle from '#lib/components/ui/CardTitle.svelte';
+	import CardDescription from '#lib/components/ui/CardDescription.svelte';
+	import CardContent from '#lib/components/ui/CardContent.svelte';
+	import CardFooter from '#lib/components/ui/CardFooter.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Badge from '#lib/components/ui/Badge.svelte';
+	import Alert from '#lib/components/ui/Alert.svelte';
+	import Label from '#lib/components/ui/Label.svelte';
+	import CopyField from '#lib/components/CopyField.svelte';
+	import { humanSize, shortTime, relativeTime } from '#lib/utils.ts';
+	import type { TokenStatus } from '#lib/types.ts';
 
 	let { data, form } = $props();
 

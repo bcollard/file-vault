@@ -1,7 +1,7 @@
 import { fail, error, type Actions } from '@sveltejs/kit';
-import { getApi } from '$lib/server/api';
-import { config, downloadUrl } from '$lib/server/config';
-import type { ApiError } from '$lib/types';
+import { getApi } from '#lib/server/api.ts';
+import { config, downloadUrl } from '#lib/server/config.ts';
+import type { ApiError } from '#lib/types.ts';
 
 export const load = async ({ params }) => {
 	const api = getApi();

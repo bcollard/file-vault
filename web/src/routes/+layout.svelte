@@ -1,6 +1,6 @@
 <script lang="ts">
 	import '../app.css';
-	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import ThemeToggle from '#lib/components/ThemeToggle.svelte';
 	import { ShieldCheck } from 'lucide-svelte';
 	import type { Snippet } from 'svelte';
 

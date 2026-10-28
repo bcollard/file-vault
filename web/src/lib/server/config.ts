@@ -1,7 +1,6 @@
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 
-function intOr(name: string, fallback: number): number {
-	const v = env[name];
+function intOr(v: string | undefined, fallback: number): number {
 	if (!v) return fallback;
 	const n = parseInt(v, 10);
 	return Number.isFinite(n) ? n : fallback;
@@ -12,11 +11,11 @@ function intOr(name: string, fallback: number): number {
 export const config = {
 	publicDomain: env.PUBLIC_DOMAIN || `localhost:${env.PORT || '5173'}`,
 	previewMode: !!env.PREVIEW_MODE,
-	defaultTokenTTLHours: intOr('DEFAULT_TOKEN_TTL_HOURS', 48),
-	minTokenTTLHours: intOr('MIN_TOKEN_TTL_HOURS', 1),
-	maxTokenTTLHours: intOr('MAX_TOKEN_TTL_HOURS', 168),
-	defaultMaxUses: intOr('DEFAULT_MAX_USES', 1),
-	maxUsesPerToken: intOr('MAX_USES_PER_TOKEN', 100)
+	defaultTokenTTLHours: intOr(env.DEFAULT_TOKEN_TTL_HOURS, 48),
+	minTokenTTLHours: intOr(env.MIN_TOKEN_TTL_HOURS, 1),
+	maxTokenTTLHours: intOr(env.MAX_TOKEN_TTL_HOURS, 168),
+	defaultMaxUses: intOr(env.DEFAULT_MAX_USES, 1),
+	maxUsesPerToken: intOr(env.MAX_USES_PER_TOKEN, 100)
 };
 
 export function downloadUrl(token: string): string {

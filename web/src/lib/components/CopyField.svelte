@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Copy, Check } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.ts';
 
 	let {
 		value,

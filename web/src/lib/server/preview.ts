@@ -5,7 +5,7 @@ import type {
 	ShareResponse,
 	TokenStatus,
 	UploadInput
-} from '$lib/types';
+} from '#lib/types.ts';
 import type { API } from './api';
 
 // PreviewClient returns canned data without touching the Go API. Used by

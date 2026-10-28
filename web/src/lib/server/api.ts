@@ -1,5 +1,5 @@
 import { GoogleAuth } from 'google-auth-library';
-import { env } from '$env/dynamic/private';
+import * as env from '$app/env/private';
 import { PreviewClient } from './preview';
 import type {
 	AdminShare,
@@ -9,7 +9,7 @@ import type {
 	ShareResponse,
 	TokenStatus,
 	UploadInput
-} from '$lib/types';
+} from '#lib/types.ts';
 
 export interface API {
 	createShare(input: UploadInput): Promise<ShareResponse>;

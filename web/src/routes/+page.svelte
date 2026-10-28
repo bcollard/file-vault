@@ -1,18 +1,18 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { Upload, Settings2, Sparkles } from 'lucide-svelte';
-	import Card from '$lib/components/ui/Card.svelte';
-	import CardHeader from '$lib/components/ui/CardHeader.svelte';
-	import CardTitle from '$lib/components/ui/CardTitle.svelte';
-	import CardDescription from '$lib/components/ui/CardDescription.svelte';
-	import CardContent from '$lib/components/ui/CardContent.svelte';
-	import CardFooter from '$lib/components/ui/CardFooter.svelte';
-	import Button from '$lib/components/ui/Button.svelte';
-	import Input from '$lib/components/ui/Input.svelte';
-	import Label from '$lib/components/ui/Label.svelte';
-	import Alert from '$lib/components/ui/Alert.svelte';
-	import CopyField from '$lib/components/CopyField.svelte';
-	import { humanSize, shortTime } from '$lib/utils';
+	import Card from '#lib/components/ui/Card.svelte';
+	import CardHeader from '#lib/components/ui/CardHeader.svelte';
+	import CardTitle from '#lib/components/ui/CardTitle.svelte';
+	import CardDescription from '#lib/components/ui/CardDescription.svelte';
+	import CardContent from '#lib/components/ui/CardContent.svelte';
+	import CardFooter from '#lib/components/ui/CardFooter.svelte';
+	import Button from '#lib/components/ui/Button.svelte';
+	import Input from '#lib/components/ui/Input.svelte';
+	import Label from '#lib/components/ui/Label.svelte';
+	import Alert from '#lib/components/ui/Alert.svelte';
+	import CopyField from '#lib/components/CopyField.svelte';
+	import { humanSize, shortTime } from '#lib/utils.ts';
 
 	let { data, form } = $props();
 
