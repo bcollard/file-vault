@@ -54,7 +54,7 @@ class HttpClient implements API {
 		// shape compatible with the rest of SvelteKit.
 		const headers = await client.getRequestHeaders(this.apiUrl + path);
 		const merged = new Headers(init?.headers);
-		for (const [k, v] of Object.entries(headers)) merged.set(k, String(v));
+		new Headers(headers).forEach((v, k) => merged.set(k, v));
 		const resp = await fetch(this.apiUrl + path, { ...init, headers: merged });
 		return resp;
 	}
