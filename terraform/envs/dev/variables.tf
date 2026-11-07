@@ -24,7 +24,8 @@ variable "bucket_name" {
 
 variable "alert_email" {
   type        = string
-  description = "Email for the Monitoring notification channel."
+  sensitive   = true
+  description = "Email for the Monitoring notification channel. Sensitive so plans and public CI logs redact it."
 }
 
 variable "image" {

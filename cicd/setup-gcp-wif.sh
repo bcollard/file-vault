@@ -105,8 +105,10 @@ gcloud artifacts repositories add-iam-policy-binding "${AR_REPO}" \
 # ── 5. IAM bindings for the terraform SA ──────────────────────────────
 # Editor covers Cloud Run, KMS, Firestore, GCS, Compute, Secret Manager,
 # Scheduler, Monitoring, Logging. IAM admin + SA admin cover IAM bindings
-# (Editor can't manage IAM). Service usage admin enables APIs.
+# (Editor can't manage IAM). Service usage admin enables APIs. Datastore owner
+# creates the named Firestore database (Editor can't).
 for role in roles/editor \
+            roles/datastore.owner \
             roles/iam.securityAdmin \
             roles/iam.serviceAccountAdmin \
             roles/serviceusage.serviceUsageAdmin; do
