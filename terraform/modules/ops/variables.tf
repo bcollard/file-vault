@@ -10,27 +10,12 @@ variable "env" {
   type = string
 }
 
-variable "bucket_name" {
-  type = string
-}
-
 variable "alert_email" {
   type = string
 }
 
-variable "api_service" {
+variable "service_name" {
   type = string
-}
-
-variable "sweeper_image" {
-  type        = string
-  description = "Image for the sweeper job. Defaults to the cloudrun hello image until you push the real sweeper."
-  default     = "gcr.io/cloudrun/hello"
-}
-
-variable "sweep_cron" {
-  type    = string
-  default = "0 * * * *"
 }
 
 variable "reuse_threshold" {

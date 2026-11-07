@@ -183,6 +183,11 @@ cat <<EOF
    AR_REPO               ${AR_REPO}       (optional, defaults to file-vault)
    WIF_POOL              ${WI_POOL}       (optional, defaults to gitops-pool)
    WIF_PROVIDER          ${WI_PROVIDER}   (optional, defaults to gh-provider)
+   TF_STATE_BUCKET       ${TFSTATE_BUCKET}
+
+   gh variable set GCP_PROJECT_ID     --body ${PROJECT_ID}
+   gh variable set GCP_PROJECT_NUMBER --body ${PROJECT_NUMBER}
+   gh variable set TF_STATE_BUCKET    --body ${TFSTATE_BUCKET}
 
 ── For reference ──────────────────────────────────────────────────
    workload_identity_provider:  projects/${PROJECT_NUMBER}/locations/global/workloadIdentityPools/${WI_POOL}/providers/${WI_PROVIDER}
@@ -192,8 +197,9 @@ cat <<EOF
    tfstate bucket:              gs://${TFSTATE_BUCKET}
 
 ── Next ──────────────────────────────────────────────────────────
-1. Uncomment backend.tf in terraform/envs/{dev,prod}/ and set:
-     bucket = "${TFSTATE_BUCKET}"
-2. Copy terraform.tfvars.example → terraform.tfvars, set project_id, bucket_name, alert_email, domain.
-3. Push to main; the GHA workflows will build images and apply.
+1. cp terraform/envs/prod/terraform.tfvars.example terraform/envs/prod/terraform.tfvars
+   and set project_id, bucket_name, domain, alert_email (gitignored).
+2. gh secret set TFVARS --env prod < terraform/envs/prod/terraform.tfvars
+3. For local runs: echo 'bucket = "${TFSTATE_BUCKET}"' > terraform/envs/prod/backend.hcl
+4. Push to main: the Deploy workflow builds the image and applies Terraform.
 EOF

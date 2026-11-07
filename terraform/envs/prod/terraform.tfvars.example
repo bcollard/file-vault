@@ -1,7 +1,11 @@
-project_id     = "your-gcp-project"
-bucket_name    = "your-gcp-project-file-vault-prod"
-alert_email    = "ops@example.com"
-domain         = "file-vault.example.com"
-api_image     = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/api:1.0.0"
-web_image     = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/web:1.0.0"
-sweeper_image = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/sweeper:1.0.0"
+# Copy to terraform.tfvars (gitignored). For CI, store the same content in the
+# TFVARS secret of the GitHub environment "prod" (see README → Deploy).
+project_id  = "your-gcp-project"
+bucket_name = "your-gcp-project-file-vault-prod"
+domain      = "file-vault.example.com"
+alert_email = "you@example.com"
+
+# Optional:
+# region        = "europe-west9"
+# max_upload_mb = 1024
+# min_instances = 0

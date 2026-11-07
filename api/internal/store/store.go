@@ -1,21 +1,27 @@
+// Package store persists shares and their capability tokens. Two backends
+// implement Store: Firestore (production) and an in-memory map (LOCAL_MODE and
+// tests). Both must give the same answers for the same calls; the shared test
+// suite in store_test.go runs against each.
 package store
 
 import (
 	"context"
 	"errors"
 	"time"
-
-	"cloud.google.com/go/firestore"
-	"google.golang.org/api/iterator"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 var (
-	ErrNotFound  = errors.New("not found")
-	ErrExhausted = errors.New("uses exhausted")
-	ErrRevoked   = errors.New("revoked")
-	ErrExpired   = errors.New("expired")
+	ErrNotFound     = errors.New("not found")
+	ErrExhausted    = errors.New("uses exhausted")
+	ErrRevoked      = errors.New("revoked")
+	ErrExpired      = errors.New("expired")
+	ErrNotReady     = errors.New("share upload not finalized")
+	ErrAlreadyFinal = errors.New("share already finalized")
+)
+
+const (
+	StatusPending = "pending"
+	StatusReady   = "ready"
 )
 
 const (
@@ -25,17 +31,20 @@ const (
 	CollAuditEvents    = "audit_events"
 )
 
+// Share is one uploaded object. The server never sees plaintext: Meta is the
+// browser-encrypted {name, type, size} blob and Size is the ciphertext length.
 type Share struct {
-	ObjectPath  string    `firestore:"object_path"`
-	Filename    string    `firestore:"filename"`
-	Size        int64     `firestore:"size"`
-	ContentType string    `firestore:"content_type"`
-	CreatedAt   time.Time `firestore:"created_at"`
-	ExpiresAt   time.Time `firestore:"expires_at"`
+	ObjectPath      string    `firestore:"object_path"`
+	Meta            string    `firestore:"meta"`
+	Size            int64     `firestore:"size"`
+	Status          string    `firestore:"status"`
+	CreatedAt       time.Time `firestore:"created_at"`
+	ExpiresAt       time.Time `firestore:"expires_at"`
+	InitialTTLHours int       `firestore:"initial_ttl_hours"`
+	InitialMaxUses  int       `firestore:"initial_max_uses"`
 }
 
-// DownloadToken now models max_uses + uses_remaining instead of a single
-// consumed_at boolean. Burn = atomic decrement.
+// DownloadToken models max_uses + uses_remaining. Burn = atomic decrement.
 type DownloadToken struct {
 	ShareID        string     `firestore:"share_id"`
 	CreatedAt      time.Time  `firestore:"created_at"`
@@ -54,122 +63,14 @@ type AdminToken struct {
 	ExpiresAt time.Time `firestore:"expires_at"`
 }
 
+// AuditEvent carries its own ExpiresAt so Firestore TTL drops it (and the IP
+// it holds) after the retention window.
 type AuditEvent struct {
-	ShareID string    `firestore:"share_id"`
-	Event   string    `firestore:"event"`
-	IP      string    `firestore:"ip,omitempty"`
-	At      time.Time `firestore:"at"`
-}
-
-type Store struct {
-	c *firestore.Client
-}
-
-func New(ctx context.Context, projectID, database string) (*Store, error) {
-	var (
-		c   *firestore.Client
-		err error
-	)
-	if database == "" || database == "(default)" {
-		c, err = firestore.NewClient(ctx, projectID)
-	} else {
-		c, err = firestore.NewClientWithDatabase(ctx, projectID, database)
-	}
-	if err != nil {
-		return nil, err
-	}
-	return &Store{c: c}, nil
-}
-
-func (s *Store) Close() error { return s.c.Close() }
-
-// CreateShare writes the share + first download token + admin token in one
-// transaction. Returns the auto-generated share_id.
-func (s *Store) CreateShare(ctx context.Context, share Share, downloadHash, adminHash string, downloadExpires time.Time, maxUses int) (string, error) {
-	shareRef := s.c.Collection(CollShares).NewDoc()
-	shareID := shareRef.ID
-
-	err := s.c.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		if err := tx.Create(shareRef, share); err != nil {
-			return err
-		}
-		if err := tx.Create(s.c.Collection(CollDownloadTokens).Doc(downloadHash), DownloadToken{
-			ShareID:       shareID,
-			CreatedAt:     share.CreatedAt,
-			ExpiresAt:     downloadExpires,
-			MaxUses:       maxUses,
-			UsesRemaining: maxUses,
-		}); err != nil {
-			return err
-		}
-		return tx.Create(s.c.Collection(CollAdminTokens).Doc(adminHash), AdminToken{
-			ShareID:   shareID,
-			CreatedAt: share.CreatedAt,
-			ExpiresAt: share.ExpiresAt,
-		})
-	})
-	if err != nil {
-		return "", err
-	}
-	return shareID, nil
-}
-
-// BurnDownloadToken atomically decrements uses_remaining and returns the bound
-// share. Failure modes (ErrNotFound, ErrRevoked, ErrExhausted, ErrExpired) all
-// mean "do not redirect."
-func (s *Store) BurnDownloadToken(ctx context.Context, hash, ip string, now time.Time) (shareID string, share *Share, err error) {
-	tokenRef := s.c.Collection(CollDownloadTokens).Doc(hash)
-
-	err = s.c.RunTransaction(ctx, func(ctx context.Context, tx *firestore.Transaction) error {
-		snap, err := tx.Get(tokenRef)
-		if err != nil {
-			if status.Code(err) == codes.NotFound {
-				return ErrNotFound
-			}
-			return err
-		}
-		var tok DownloadToken
-		if err := snap.DataTo(&tok); err != nil {
-			return err
-		}
-		if tok.Revoked {
-			return ErrRevoked
-		}
-		if now.After(tok.ExpiresAt) {
-			return ErrExpired
-		}
-		if tok.UsesRemaining <= 0 {
-			return ErrExhausted
-		}
-
-		updates := []firestore.Update{
-			{Path: "uses_remaining", Value: tok.UsesRemaining - 1},
-			{Path: "last_used_at", Value: now},
-			{Path: "last_used_from_ip", Value: ip},
-		}
-		if tok.FirstUsedAt == nil {
-			updates = append(updates, firestore.Update{Path: "first_used_at", Value: now})
-		}
-		if err := tx.Update(tokenRef, updates); err != nil {
-			return err
-		}
-
-		shareSnap, err := tx.Get(s.c.Collection(CollShares).Doc(tok.ShareID))
-		if err != nil {
-			return err
-		}
-		var sh Share
-		if err := shareSnap.DataTo(&sh); err != nil {
-			return err
-		}
-		shareID = tok.ShareID
-		share = &sh
-		return nil
-	})
-	if err != nil {
-		return "", nil, err
-	}
-	return shareID, share, nil
+	ShareID   string    `firestore:"share_id"`
+	Event     string    `firestore:"event"`
+	IP        string    `firestore:"ip,omitempty"`
+	At        time.Time `firestore:"at"`
+	ExpiresAt time.Time `firestore:"expires_at"`
 }
 
 // TokenStatus is the admin-facing view of a download token. ShortID is the
@@ -187,6 +88,31 @@ type TokenStatus struct {
 	LastUsedFromIP string
 }
 
+type Store interface {
+	// CreateShare writes a pending share and its admin token. The first
+	// download token is only minted by FinalizeShare, once the ciphertext is
+	// confirmed in the bucket.
+	CreateShare(ctx context.Context, share Share, adminHash string) (shareID string, err error)
+	// FinalizeShare flips pending → ready and creates the first download
+	// token in one transaction. Returns ErrAlreadyFinal on a second call.
+	FinalizeShare(ctx context.Context, shareID, downloadHash string, now, downloadExpires time.Time, maxUses int) error
+	// PeekDownloadToken validates a token without consuming it.
+	PeekDownloadToken(ctx context.Context, hash string, now time.Time) (*Share, *DownloadToken, error)
+	// BurnDownloadToken atomically decrements uses_remaining. Every failure
+	// mode means "do not hand out a URL".
+	BurnDownloadToken(ctx context.Context, hash, ip string, now time.Time) (shareID string, share *Share, err error)
+	LookupAdmin(ctx context.Context, hash string) (shareID string, err error)
+	GetShare(ctx context.Context, shareID string) (*Share, error)
+	ListDownloadTokens(ctx context.Context, shareID string, now time.Time) ([]TokenStatus, error)
+	IssueDownloadToken(ctx context.Context, shareID, hash string, now, expires time.Time, maxUses int) error
+	RevokeOutstandingTokens(ctx context.Context, shareID string, now time.Time) (int, error)
+	// DeleteShare removes share + admin token + all download tokens. The
+	// caller deletes the blob first.
+	DeleteShare(ctx context.Context, shareID, adminHash string) error
+	RecordAudit(ctx context.Context, e AuditEvent) error
+	Close() error
+}
+
 func classifyToken(t DownloadToken, now time.Time) string {
 	switch {
 	case t.Revoked:
@@ -200,179 +126,36 @@ func classifyToken(t DownloadToken, now time.Time) string {
 	}
 }
 
-// ListDownloadTokens returns every download token bound to the share, newest first.
-func (s *Store) ListDownloadTokens(ctx context.Context, shareID string, now time.Time) ([]TokenStatus, error) {
-	iter := s.c.Collection(CollDownloadTokens).
-		Where("share_id", "==", shareID).
-		OrderBy("created_at", firestore.Desc).
-		Documents(ctx)
-	defer iter.Stop()
-
-	var out []TokenStatus
-	for {
-		snap, err := iter.Next()
-		if errors.Is(err, iterator.Done) {
-			break
-		}
-		if err != nil {
-			return nil, err
-		}
-		var tok DownloadToken
-		if err := snap.DataTo(&tok); err != nil {
-			return nil, err
-		}
-		short := snap.Ref.ID
-		if len(short) > 8 {
-			short = short[:8]
-		}
-		out = append(out, TokenStatus{
-			ShortID:        short,
-			Status:         classifyToken(tok, now),
-			CreatedAt:      tok.CreatedAt,
-			ExpiresAt:      tok.ExpiresAt,
-			MaxUses:        tok.MaxUses,
-			UsesRemaining:  tok.UsesRemaining,
-			FirstUsedAt:    tok.FirstUsedAt,
-			LastUsedAt:     tok.LastUsedAt,
-			LastUsedFromIP: tok.LastUsedFromIP,
-		})
+// checkUsable returns the error matching classifyToken, or nil if active.
+func checkUsable(t DownloadToken, now time.Time) error {
+	switch classifyToken(t, now) {
+	case "revoked":
+		return ErrRevoked
+	case "expired":
+		return ErrExpired
+	case "exhausted":
+		return ErrExhausted
 	}
-	return out, nil
-}
-
-// PeekDownloadToken reads token + share without mutating state. Used by the
-// download confirmation page so link unfurlers (Slack, email gateways, etc.)
-// don't burn a use before the human clicks.
-func (s *Store) PeekDownloadToken(ctx context.Context, hash string, now time.Time) (*Share, error) {
-	snap, err := s.c.Collection(CollDownloadTokens).Doc(hash).Get(ctx)
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	var tok DownloadToken
-	if err := snap.DataTo(&tok); err != nil {
-		return nil, err
-	}
-	if tok.Revoked {
-		return nil, ErrRevoked
-	}
-	if now.After(tok.ExpiresAt) {
-		return nil, ErrExpired
-	}
-	if tok.UsesRemaining <= 0 {
-		return nil, ErrExhausted
-	}
-	return s.GetShare(ctx, tok.ShareID)
-}
-
-// LookupAdmin returns the share_id behind an admin token hash.
-func (s *Store) LookupAdmin(ctx context.Context, hash string) (string, error) {
-	snap, err := s.c.Collection(CollAdminTokens).Doc(hash).Get(ctx)
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return "", ErrNotFound
-		}
-		return "", err
-	}
-	var at AdminToken
-	if err := snap.DataTo(&at); err != nil {
-		return "", err
-	}
-	return at.ShareID, nil
-}
-
-func (s *Store) GetShare(ctx context.Context, shareID string) (*Share, error) {
-	snap, err := s.c.Collection(CollShares).Doc(shareID).Get(ctx)
-	if err != nil {
-		if status.Code(err) == codes.NotFound {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	var sh Share
-	if err := snap.DataTo(&sh); err != nil {
-		return nil, err
-	}
-	return &sh, nil
-}
-
-// IssueDownloadToken adds a new download token to an existing share.
-func (s *Store) IssueDownloadToken(ctx context.Context, shareID, hash string, now, expires time.Time, maxUses int) error {
-	_, err := s.c.Collection(CollDownloadTokens).Doc(hash).Create(ctx, DownloadToken{
-		ShareID:       shareID,
-		CreatedAt:     now,
-		ExpiresAt:     expires,
-		MaxUses:       maxUses,
-		UsesRemaining: maxUses,
-	})
-	return err
-}
-
-// RevokeOutstandingTokens flips revoked=true on every token still usable
-// (active or partially-consumed but not yet exhausted/expired/revoked).
-// Filter happens client-side so we don't need an inequality composite index.
-func (s *Store) RevokeOutstandingTokens(ctx context.Context, shareID string, now time.Time) (int, error) {
-	iter := s.c.Collection(CollDownloadTokens).
-		Where("share_id", "==", shareID).
-		Documents(ctx)
-	defer iter.Stop()
-
-	bw := s.c.BulkWriter(ctx)
-	count := 0
-	for {
-		snap, err := iter.Next()
-		if errors.Is(err, iterator.Done) {
-			break
-		}
-		if err != nil {
-			bw.End()
-			return count, err
-		}
-		var tok DownloadToken
-		if err := snap.DataTo(&tok); err != nil {
-			bw.End()
-			return count, err
-		}
-		if classifyToken(tok, now) != "active" {
-			continue
-		}
-		if _, err := bw.Update(snap.Ref, []firestore.Update{{Path: "revoked", Value: true}}); err != nil {
-			bw.End()
-			return count, err
-		}
-		count++
-	}
-	bw.End()
-	return count, nil
-}
-
-// DeleteShare removes the share + admin token + all download tokens. The caller
-// is responsible for deleting the GCS object first.
-func (s *Store) DeleteShare(ctx context.Context, shareID, adminHash string) error {
-	bw := s.c.BulkWriter(ctx)
-	bw.Delete(s.c.Collection(CollShares).Doc(shareID))
-	bw.Delete(s.c.Collection(CollAdminTokens).Doc(adminHash))
-
-	iter := s.c.Collection(CollDownloadTokens).Where("share_id", "==", shareID).Documents(ctx)
-	defer iter.Stop()
-	for {
-		snap, err := iter.Next()
-		if errors.Is(err, iterator.Done) {
-			break
-		}
-		if err != nil {
-			bw.End()
-			return err
-		}
-		bw.Delete(snap.Ref)
-	}
-	bw.End()
 	return nil
 }
 
-func (s *Store) RecordAudit(ctx context.Context, e AuditEvent) error {
-	_, _, err := s.c.Collection(CollAuditEvents).Add(ctx, e)
-	return err
+func shortID(hash string) string {
+	if len(hash) > 8 {
+		return hash[:8]
+	}
+	return hash
+}
+
+func toStatus(hash string, t DownloadToken, now time.Time) TokenStatus {
+	return TokenStatus{
+		ShortID:        shortID(hash),
+		Status:         classifyToken(t, now),
+		CreatedAt:      t.CreatedAt,
+		ExpiresAt:      t.ExpiresAt,
+		MaxUses:        t.MaxUses,
+		UsesRemaining:  t.UsesRemaining,
+		FirstUsedAt:    t.FirstUsedAt,
+		LastUsedAt:     t.LastUsedAt,
+		LastUsedFromIP: t.LastUsedFromIP,
+	}
 }

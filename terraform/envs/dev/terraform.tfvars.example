@@ -1,9 +1,11 @@
+# Copy to terraform.tfvars (gitignored). For CI, store the same content in the
+# TFVARS secret of the GitHub environment "dev" (see README → Deploy).
 project_id  = "your-gcp-project"
 bucket_name = "your-gcp-project-file-vault-dev"
-alert_email = "you@example.com"
 domain      = "file-vault.example.com"
+alert_email = "you@example.com"
 
-# Replace once you've pushed images to Artifact Registry:
-# api_image     = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/api:0.1.0"
-# web_image     = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/web:0.1.0"
-# sweeper_image = "europe-west9-docker.pkg.dev/your-gcp-project/file-vault/sweeper:0.1.0"
+# Optional:
+# region        = "europe-west9"
+# max_upload_mb = 1024
+# min_instances = 0

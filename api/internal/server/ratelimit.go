@@ -10,13 +10,14 @@ import (
 
 // rateLimiter holds a per-IP token-bucket. Cloud Run autoscales, so each
 // instance keeps its own counter — this protects against single-client abuse,
-// not distributed floods. Cloud Armor sits in front of /d/* for that.
+// not distributed floods. Cloud Armor on the load balancer handles that.
 type rateLimiter struct {
 	mu       sync.Mutex
 	visitors map[string]*visitor
 	rate     rate.Limit
 	burst    int
 	idle     time.Duration
+	key      func(*http.Request) string
 }
 
 type visitor struct {
@@ -24,12 +25,13 @@ type visitor struct {
 	lastSeen time.Time
 }
 
-func newRateLimiter(r rate.Limit, burst int, idle time.Duration) *rateLimiter {
+func newRateLimiter(r rate.Limit, burst int, idle time.Duration, key func(*http.Request) string) *rateLimiter {
 	rl := &rateLimiter{
 		visitors: make(map[string]*visitor),
 		rate:     r,
 		burst:    burst,
 		idle:     idle,
+		key:      key,
 	}
 	go rl.sweep()
 	return rl
@@ -62,11 +64,11 @@ func (rl *rateLimiter) sweep() {
 	}
 }
 
-func (rl *rateLimiter) middleware(h http.HandlerFunc) http.HandlerFunc {
+func (rl *rateLimiter) wrap(h http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if !rl.get(clientIP(r)).Allow() {
+		if !rl.get(rl.key(r)).Allow() {
 			w.Header().Set("Retry-After", "60")
-			http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
+			writeError(w, http.StatusTooManyRequests, "rate limit exceeded")
 			return
 		}
 		h(w, r)

@@ -1,0 +1,140 @@
+name: Deploy
+
+# Builds the image (UI embedded in the Go binary), pushes it to Artifact
+# Registry, then runs `terraform apply` with that image tag, which rolls out a
+# new Cloud Run revision.
+#
+# Deployment-specific settings live outside git:
+#   repo variables     GCP_PROJECT_ID, GCP_PROJECT_NUMBER, TF_STATE_BUCKET
+#                      (optional: GCP_REGION, AR_REPO, WIF_POOL, WIF_PROVIDER, DEPLOY_ENV)
+#   environment secret TFVARS — the content of terraform/envs/<env>/terraform.tfvars
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'api/**'
+      - 'web/**'
+      - 'terraform/**'
+      - 'Dockerfile'
+      - '.dockerignore'
+      - '.github/workflows/deploy.yaml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Terraform environment (terraform/envs/<name>)
+        type: choice
+        options: [prod, dev]
+        default: prod
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: deploy-${{ inputs.environment || vars.DEPLOY_ENV || 'prod' }}
+  cancel-in-progress: false
+
+env:
+  DEPLOY_ENV: ${{ inputs.environment || vars.DEPLOY_ENV || 'prod' }}
+  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  REGION: ${{ vars.GCP_REGION || 'europe-west9' }}
+  AR_REPO: ${{ vars.AR_REPO || 'file-vault' }}
+  WIF_PROVIDER: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ vars.WIF_POOL || 'gitops-pool' }}/providers/${{ vars.WIF_PROVIDER || 'gh-provider' }}
+
+jobs:
+  build:
+    # Repos without a GCP setup (forks, fresh clones) skip instead of failing.
+    if: vars.GCP_PROJECT_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      image: ${{ steps.ref.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: gha-build-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+      - uses: docker/setup-buildx-action@v3
+
+      - id: ref
+        run: |
+          repo="${REGION}-docker.pkg.dev/${PROJECT_ID}/${AR_REPO}/file-vault"
+          echo "repo=${repo}" >> "$GITHUB_OUTPUT"
+          echo "image=${repo}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          provenance: false
+          tags: |
+            ${{ steps.ref.outputs.image }}
+            ${{ steps.ref.outputs.repo }}:latest
+          cache-from: type=registry,ref=${{ steps.ref.outputs.repo }}:buildcache
+          cache-to: type=registry,ref=${{ steps.ref.outputs.repo }}:buildcache,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment || vars.DEPLOY_ENV || 'prod' }}
+    defaults:
+      run:
+        working-directory: terraform/envs/${{ env.DEPLOY_ENV }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ env.WIF_PROVIDER }}
+          service_account: gha-tf-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ~1.17
+          terraform_wrapper: false
+
+      - name: Write terraform.tfvars from the TFVARS secret
+        env:
+          TFVARS: ${{ secrets.TFVARS }}
+        run: |
+          if [ -z "$TFVARS" ]; then
+            echo "::error::Set the TFVARS secret on the '${DEPLOY_ENV}' environment (content of terraform.tfvars)."
+            exit 1
+          fi
+          printf '%s\n' "$TFVARS" > terraform.tfvars
+
+      - run: terraform init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - run: terraform apply -input=false -auto-approve -var "image=${{ needs.build.outputs.image }}"
+
+      - name: Smoke test
+        # Fails until the load balancer routes the domain to this service.
+        continue-on-error: true
+        run: |
+          url="$(terraform output -raw public_url)"
+          for i in $(seq 1 12); do
+            if curl -fsS "${url}/api/config" > /dev/null; then echo "OK ${url}"; exit 0; fi
+            sleep 10
+          done
+          echo "::warning::${url} did not answer; check the load balancer and DNS."
+          exit 1
+
+      - name: Summary
+        if: always()
+        run: |
+          {
+            echo "## Deploy (${DEPLOY_ENV})"
+            echo ""
+            echo "- **Status:** ${{ job.status }}"
+            echo "- **Image:** \`${{ needs.build.outputs.image }}\`"
+            echo "- **NEG:** \`$(terraform output -raw neg_id 2>/dev/null || echo n/a)\`"
+          } >> "$GITHUB_STEP_SUMMARY"

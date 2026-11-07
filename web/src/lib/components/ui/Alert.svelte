@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { cn } from '$lib/utils';
+	import { cn } from '#lib/utils.ts';
 	import type { Snippet } from 'svelte';
 
 	type Variant = 'default' | 'destructive' | 'warning' | 'success';
@@ -13,14 +13,14 @@
 	const variants: Record<Variant, string> = {
 		default: 'border bg-background text-foreground',
 		destructive:
-			'border-destructive/50 bg-destructive/10 text-destructive [&>svg]:text-destructive',
+			'border-destructive/50 bg-destructive/10 text-destructive [&_svg]:text-destructive',
 		warning:
-			'border-[hsl(var(--warning)/0.4)] bg-[hsl(var(--warning)/0.1)] text-[hsl(var(--warning))]',
+			'border-warning/40 bg-warning/10 text-foreground [&_svg]:text-warning',
 		success:
-			'border-[hsl(var(--success)/0.4)] bg-[hsl(var(--success)/0.1)] text-[hsl(var(--success))]'
+			'border-success/40 bg-success/10 text-foreground [&_svg]:text-success'
 	};
 </script>
 
-<div role="alert" class={cn('relative w-full rounded-lg border p-4 text-sm', variants[variant], className)}>
+<div role="alert" class={cn('relative w-full rounded-xl border p-4 text-sm', variants[variant], className)}>
 	{@render children()}
 </div>

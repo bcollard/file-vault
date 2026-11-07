@@ -1,0 +1,2 @@
+# Bucket created by cicd/setup-gcp-wif.sh: <project-id>-tfstate-file-vault
+bucket = "your-gcp-project-tfstate-file-vault"

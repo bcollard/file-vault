@@ -1,21 +1,40 @@
 package config
 
 import (
+	"crypto/rand"
 	"fmt"
+	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
 type Config struct {
-	Port                 string
+	Port string
+
+	// LocalMode swaps Firestore + GCS for an in-memory store and a local blob
+	// directory. No GCP credentials needed. Never enable in production.
+	LocalMode bool
+	LocalDir  string
+
 	ProjectID            string
 	BucketName           string
 	FirestoreDatabase    string
 	SignerServiceAccount string
 	HMACPepper           []byte
-	DownloadURLTTL       time.Duration
-	ShareTTL             time.Duration
+
+	// PublicOrigin is the scheme+host users load the UI from
+	// (e.g. https://file-vault.example.com). GCS resumable sessions are bound
+	// to it so the browser can PUT chunks cross-origin.
+	PublicOrigin string
+
+	DownloadURLTTL  time.Duration
+	ShareTTL        time.Duration
+	AuditRetention  time.Duration
+	MaxUploadBytes  int64
+	MaxMetaBytes    int
+	TrustedProxyHop int
 
 	// Per-token settings — the upload form may pick within these bounds.
 	DefaultTokenTTLHours int
@@ -34,11 +53,49 @@ type Config struct {
 func Load() (*Config, error) {
 	c := &Config{
 		Port:                 getenv("PORT", "8080"),
+		LocalMode:            os.Getenv("LOCAL_MODE") == "1",
+		LocalDir:             os.Getenv("LOCAL_DIR"),
 		ProjectID:            os.Getenv("GOOGLE_CLOUD_PROJECT"),
 		BucketName:           os.Getenv("BUCKET_NAME"),
 		FirestoreDatabase:    getenv("FIRESTORE_DATABASE", "(default)"),
 		SignerServiceAccount: os.Getenv("SIGNER_SERVICE_ACCOUNT"),
 		HMACPepper:           []byte(os.Getenv("HMAC_PEPPER")),
+		PublicOrigin:         strings.TrimRight(os.Getenv("PUBLIC_ORIGIN"), "/"),
+	}
+
+	c.DownloadURLTTL = duration("DOWNLOAD_URL_TTL_SECONDS", 60, time.Second)
+	c.ShareTTL = duration("SHARE_TTL_DAYS", 7, 24*time.Hour)
+	c.AuditRetention = duration("AUDIT_RETENTION_DAYS", 30, 24*time.Hour)
+	c.MaxUploadBytes = int64(intEnv("MAX_UPLOAD_MB", 1024)) << 20
+	c.MaxMetaBytes = intEnv("MAX_META_BYTES", 4096)
+	// Google's external Application Load Balancer appends "<client-ip>, <lb-ip>"
+	// to X-Forwarded-For. Anything to the left of that is client-supplied.
+	c.TrustedProxyHop = intEnv("TRUSTED_PROXY_HOPS", 2)
+
+	c.DefaultTokenTTLHours = intEnv("DEFAULT_TOKEN_TTL_HOURS", 48)
+	c.MinTokenTTLHours = intEnv("MIN_TOKEN_TTL_HOURS", 1)
+	c.MaxTokenTTLHours = intEnv("MAX_TOKEN_TTL_HOURS", 168)
+	c.DefaultMaxUses = intEnv("DEFAULT_MAX_USES", 1)
+	c.MaxUsesPerToken = intEnv("MAX_USES_PER_TOKEN", 100)
+
+	c.UploadRPM = intEnv("RATE_LIMIT_UPLOAD_RPM", 10)
+	c.UploadBurst = intEnv("RATE_LIMIT_UPLOAD_BURST", 3)
+	c.ReadRPM = intEnv("RATE_LIMIT_READ_RPM", 60)
+	c.ReadBurst = intEnv("RATE_LIMIT_READ_BURST", 30)
+
+	if c.LocalMode {
+		if c.PublicOrigin == "" {
+			c.PublicOrigin = "http://localhost:" + c.Port
+		}
+		if len(c.HMACPepper) == 0 {
+			c.HMACPepper = make([]byte, 32)
+			_, _ = rand.Read(c.HMACPepper)
+		}
+		// Local requests come straight from the browser or the Vite proxy.
+		if os.Getenv("TRUSTED_PROXY_HOPS") == "" {
+			c.TrustedProxyHop = 0
+		}
+		return c, nil
 	}
 
 	if c.ProjectID == "" {
@@ -53,25 +110,13 @@ func Load() (*Config, error) {
 	if len(c.HMACPepper) == 0 {
 		return nil, fmt.Errorf("HMAC_PEPPER required")
 	}
-
-	c.DownloadURLTTL = mustDuration("DOWNLOAD_URL_TTL_SECONDS", 60, time.Second)
-	c.ShareTTL = mustDuration("SHARE_TTL_DAYS", 7, 24*time.Hour)
-
-	c.DefaultTokenTTLHours = mustInt("DEFAULT_TOKEN_TTL_HOURS", 48)
-	c.MinTokenTTLHours = mustInt("MIN_TOKEN_TTL_HOURS", 1)
-	c.MaxTokenTTLHours = mustInt("MAX_TOKEN_TTL_HOURS", 168)
-	c.DefaultMaxUses = mustInt("DEFAULT_MAX_USES", 1)
-	c.MaxUsesPerToken = mustInt("MAX_USES_PER_TOKEN", 100)
-
-	c.UploadRPM = mustInt("RATE_LIMIT_UPLOAD_RPM", 10)
-	c.UploadBurst = mustInt("RATE_LIMIT_UPLOAD_BURST", 3)
-	c.ReadRPM = mustInt("RATE_LIMIT_READ_RPM", 60)
-	c.ReadBurst = mustInt("RATE_LIMIT_READ_BURST", 30)
-
+	if u, err := url.Parse(c.PublicOrigin); err != nil || u.Scheme == "" || u.Host == "" || u.Path != "" {
+		return nil, fmt.Errorf("PUBLIC_ORIGIN must be scheme://host, got %q", c.PublicOrigin)
+	}
 	return c, nil
 }
 
-func mustInt(key string, def int) int {
+func intEnv(key string, def int) int {
 	v := os.Getenv(key)
 	if v == "" {
 		return def
@@ -83,16 +128,8 @@ func mustInt(key string, def int) int {
 	return n
 }
 
-func mustDuration(key string, def int, unit time.Duration) time.Duration {
-	v := os.Getenv(key)
-	if v == "" {
-		return time.Duration(def) * unit
-	}
-	n, err := strconv.Atoi(v)
-	if err != nil {
-		return time.Duration(def) * unit
-	}
-	return time.Duration(n) * unit
+func duration(key string, def int, unit time.Duration) time.Duration {
+	return time.Duration(intEnv(key, def)) * unit
 }
 
 func getenv(k, def string) string {
