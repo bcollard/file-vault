@@ -27,6 +27,7 @@ Set in `terraform/envs/<env>/terraform.tfvars`:
 
 | Variable | Default | Notes |
 |---|---|---|
+| `GOOGLE_CLOUD_PROJECT` | — | Set by Terraform. Cloud Run doesn't provide it |
 | `PUBLIC_ORIGIN` | — | `https://<domain>`. Upload sessions are bound to it |
 | `BUCKET_NAME` | — | Set by Terraform |
 | `FIRESTORE_DATABASE` | `(default)` | Terraform sets `file-vault-<env>` |
