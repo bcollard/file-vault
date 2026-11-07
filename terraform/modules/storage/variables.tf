@@ -24,3 +24,8 @@ variable "force_destroy" {
   default     = false
   description = "Allow terraform destroy to delete a non-empty bucket. Set true in dev only."
 }
+
+variable "cors_origins" {
+  type        = list(string)
+  description = "Origins allowed to upload and download directly, e.g. [\"https://file-vault.example.com\"]."
+}

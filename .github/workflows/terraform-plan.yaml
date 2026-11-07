@@ -1,4 +1,7 @@
-name: Terraform plan (dev)
+name: Terraform plan
+
+# Plans the deploy environment on pull requests that touch Terraform and posts
+# the plan as a comment. Uses the same variables and TFVARS secret as deploy.
 
 on:
   pull_request:
@@ -12,47 +15,53 @@ permissions:
   pull-requests: write
 
 env:
-  PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  DEPLOY_ENV: ${{ vars.DEPLOY_ENV || 'prod' }}
+  REGION: ${{ vars.GCP_REGION || 'europe-west9' }}
   WIF_PROVIDER: projects/${{ vars.GCP_PROJECT_NUMBER }}/locations/global/workloadIdentityPools/${{ vars.WIF_POOL || 'gitops-pool' }}/providers/${{ vars.WIF_PROVIDER || 'gh-provider' }}
-  WIF_SA: gha-tf-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
-  TF_WORKDIR: ./terraform/envs/dev
 
 jobs:
   plan:
+    # Fork PRs get no OIDC token or secrets; skip rather than fail.
+    if: vars.GCP_PROJECT_ID != '' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
+    environment: ${{ vars.DEPLOY_ENV || 'prod' }}
+    env:
+      TF_WORKDIR: terraform/envs/${{ vars.DEPLOY_ENV || 'prod' }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Auth via Workload Identity Federation
-        uses: google-github-actions/auth@v2
+      - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ env.WIF_PROVIDER }}
-          service_account: ${{ env.WIF_SA }}
+          service_account: gha-tf-file-vault@${{ vars.GCP_PROJECT_ID }}.iam.gserviceaccount.com
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: ~1.9
+          terraform_version: ~1.17
           terraform_wrapper: false
 
-      - name: terraform fmt
-        run: terraform -chdir=./terraform fmt -check -recursive
+      - name: Write terraform.tfvars
+        env:
+          TFVARS: ${{ secrets.TFVARS }}
+        run: printf '%s\n' "$TFVARS" > "$TF_WORKDIR/terraform.tfvars"
 
-      - name: terraform init
-        run: terraform -chdir=${{ env.TF_WORKDIR }} init
-
-      - name: terraform validate
-        run: terraform -chdir=${{ env.TF_WORKDIR }} validate
+      - run: terraform -chdir="$TF_WORKDIR" init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
 
       - name: terraform plan
         id: plan
         run: |
+          # Plan against the image that is running now, so the diff shows only
+          # infrastructure changes.
+          image="$(gcloud run services describe "file-vault-${DEPLOY_ENV}" --region "$REGION" \
+            --project "${{ vars.GCP_PROJECT_ID }}" --format='value(spec.template.spec.containers[0].image)' 2>/dev/null \
+            || echo gcr.io/cloudrun/hello)"
           set +e
-          terraform -chdir=${{ env.TF_WORKDIR }} plan -no-color -out=tfplan
+          terraform -chdir="$TF_WORKDIR" plan -no-color -input=false -var "image=${image}" -out=tfplan
           rc=$?
-          terraform -chdir=${{ env.TF_WORKDIR }} show -no-color tfplan > "$RUNNER_TEMP/plan.txt"
+          terraform -chdir="$TF_WORKDIR" show -no-color tfplan > "$RUNNER_TEMP/plan.txt"
           exit $rc
 
       - name: Post plan to PR

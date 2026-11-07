@@ -1,19 +1,35 @@
+# Deployment-specific values go in terraform.tfvars (gitignored). See
+# terraform.tfvars.example. CI writes the same file from the TFVARS secret.
+
 variable "project_id" {
-  type = string
+  type        = string
+  description = "GCP project ID."
 }
 
 variable "region" {
-  type    = string
-  default = "europe-west9"
+  type        = string
+  default     = "europe-west9"
+  description = "Region for Cloud Run, the bucket, KMS and Firestore."
+}
+
+variable "domain" {
+  type        = string
+  description = "Public hostname served by your load balancer, e.g. file-vault.example.com."
 }
 
 variable "bucket_name" {
-  type = string
+  type        = string
+  description = "Globally unique GCS bucket name for encrypted objects."
 }
 
-variable "object_ttl_days" {
-  type    = number
-  default = 7
+variable "alert_email" {
+  type        = string
+  description = "Email for the Monitoring notification channel."
+}
+
+variable "image" {
+  type        = string
+  description = "Container image. The deploy workflow passes the tag it just built (-var image=...)."
 }
 
 variable "share_ttl_days" {
@@ -21,25 +37,19 @@ variable "share_ttl_days" {
   default = 7
 }
 
-variable "domain" {
-  type        = string
-  description = "Public hostname served by your external LB (e.g. file-vault.example.com)."
+variable "max_upload_mb" {
+  type    = number
+  default = 1024
 }
 
-variable "api_image" {
-  type = string
+variable "min_instances" {
+  type    = number
+  default = 0
 }
 
-variable "web_image" {
-  type = string
-}
-
-variable "sweeper_image" {
-  type = string
-}
-
-variable "alert_email" {
-  type = string
+variable "max_instances" {
+  type    = number
+  default = 10
 }
 
 variable "force_destroy_bucket" {

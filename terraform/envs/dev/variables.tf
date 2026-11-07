@@ -1,3 +1,6 @@
+# Deployment-specific values go in terraform.tfvars (gitignored). See
+# terraform.tfvars.example. CI writes the same file from the TFVARS secret.
+
 variable "project_id" {
   type        = string
   description = "GCP project ID."
@@ -6,17 +9,27 @@ variable "project_id" {
 variable "region" {
   type        = string
   default     = "europe-west9"
-  description = "Default region for regional resources. Firestore must support this location."
+  description = "Region for Cloud Run, the bucket, KMS and Firestore."
+}
+
+variable "domain" {
+  type        = string
+  description = "Public hostname served by your load balancer, e.g. file-vault.example.com."
 }
 
 variable "bucket_name" {
   type        = string
-  description = "Globally-unique GCS bucket name for share objects."
+  description = "Globally unique GCS bucket name for encrypted objects."
 }
 
-variable "object_ttl_days" {
-  type    = number
-  default = 7
+variable "alert_email" {
+  type        = string
+  description = "Email for the Monitoring notification channel."
+}
+
+variable "image" {
+  type        = string
+  description = "Container image. The deploy workflow passes the tag it just built (-var image=...)."
 }
 
 variable "share_ttl_days" {
@@ -24,31 +37,19 @@ variable "share_ttl_days" {
   default = 7
 }
 
-variable "domain" {
-  type        = string
-  description = "Public hostname served by your external LB (e.g. file-vault.example.com)."
+variable "max_upload_mb" {
+  type    = number
+  default = 1024
 }
 
-variable "api_image" {
-  type        = string
-  default     = "gcr.io/cloudrun/hello"
-  description = "Replace with your Artifact Registry tag once the Go API is built."
+variable "min_instances" {
+  type    = number
+  default = 0
 }
 
-variable "web_image" {
-  type        = string
-  default     = "gcr.io/cloudrun/hello"
-  description = "Replace with your Artifact Registry tag once the web UI is built."
-}
-
-variable "sweeper_image" {
-  type    = string
-  default = "gcr.io/cloudrun/hello"
-}
-
-variable "alert_email" {
-  type        = string
-  description = "Email for the Monitoring notification channel."
+variable "max_instances" {
+  type    = number
+  default = 10
 }
 
 variable "force_destroy_bucket" {

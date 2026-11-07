@@ -8,6 +8,7 @@ tfplan
 plan.txt
 *.tfvars
 !*.tfvars.example
+backend.hcl
 
 # GitHub Actions WIF credentials (created by google-github-actions/auth at runtime)
 gha-creds-*.json
@@ -17,6 +18,9 @@ cicd/setup.env
 
 # Go
 /api/api
+/bin/
+/api/internal/webui/dist/*
+!/api/internal/webui/dist/.gitkeep
 
 # SvelteKit + Node
 web/node_modules/

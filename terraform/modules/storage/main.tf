@@ -46,5 +46,14 @@ resource "google_storage_bucket" "this" {
     }
   }
 
+  # The browser PUTs ciphertext chunks to resumable session URLs and GETs it
+  # back through signed URLs, both cross-origin from the UI.
+  cors {
+    origin          = var.cors_origins
+    method          = ["GET", "PUT"]
+    response_header = ["Content-Type", "Content-Range", "Range", "X-Goog-Resumable"]
+    max_age_seconds = 3600
+  }
+
   depends_on = [google_kms_crypto_key_iam_member.gcs_sa_encrypter]
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Copy, Check } from 'lucide-svelte';
-	import { cn } from '$lib/utils';
+	import { Copy, Check } from '@lucide/svelte';
+	import { cn } from '#lib/utils.ts';
 
 	let {
 		value,
@@ -39,13 +39,13 @@
 				{label}
 			</span>
 			{#if variant === 'sensitive'}
-				<span class="text-xs text-destructive">— save it now, you won't see it again</span>
+				<span class="text-xs text-destructive">save it now, it can't be shown again</span>
 			{/if}
 		</div>
 	{/if}
 	<div
 		class={cn(
-			'flex items-center gap-2 rounded-md border bg-muted/40 p-2 font-mono text-xs',
+			'flex items-center gap-2 rounded-lg border bg-muted/40 p-2 font-mono text-xs',
 			variant === 'sensitive' && 'border-destructive/40 bg-destructive/5'
 		)}
 	>

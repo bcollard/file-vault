@@ -7,7 +7,6 @@ locals {
     "storage.googleapis.com",
     "secretmanager.googleapis.com",
     "cloudkms.googleapis.com",
-    "cloudscheduler.googleapis.com",
     "iam.googleapis.com",
     "iamcredentials.googleapis.com",
     "compute.googleapis.com",
@@ -25,16 +24,6 @@ resource "google_project_service" "apis" {
   disable_on_destroy = false
 }
 
-module "network" {
-  source = "../../modules/network"
-
-  project_id = var.project_id
-  region     = var.region
-  env        = local.env
-
-  depends_on = [google_project_service.apis]
-}
-
 module "secrets" {
   source = "../../modules/secrets"
 
@@ -44,6 +33,8 @@ module "secrets" {
   depends_on = [google_project_service.apis]
 }
 
+# Objects live exactly as long as shares: the lifecycle rule and Firestore TTL
+# do all expiry, so no sweeper job is needed.
 module "storage" {
   source = "../../modules/storage"
 
@@ -51,8 +42,9 @@ module "storage" {
   region          = var.region
   env             = local.env
   bucket_name     = var.bucket_name
-  object_ttl_days = var.object_ttl_days
+  object_ttl_days = var.share_ttl_days
   force_destroy   = var.force_destroy_bucket
+  cors_origins    = ["https://${var.domain}"]
 
   depends_on = [google_project_service.apis]
 }
@@ -67,46 +59,29 @@ module "firestore" {
   depends_on = [google_project_service.apis]
 }
 
-module "api" {
-  source = "../../modules/api"
+module "app" {
+  source = "../../modules/app"
 
-  project_id       = var.project_id
-  region           = var.region
-  env              = local.env
-  image            = var.api_image
-  bucket_name      = module.storage.bucket_name
-  pepper_secret_id = module.secrets.pepper_secret_id
-  vpc_subnet_id    = module.network.subnet_id
-  min_instances    = 1
-  max_instances    = 50
-  share_ttl_days   = var.share_ttl_days
-
-  depends_on = [module.firestore]
-}
-
-module "web" {
-  source = "../../modules/web"
-
-  project_id    = var.project_id
-  region        = var.region
-  env           = local.env
-  image         = var.web_image
-  api_url       = module.api.service_url
-  api_service   = module.api.service_name
-  vpc_subnet_id = module.network.subnet_id
-  public_domain = var.domain
-  min_instances = 1
-  max_instances = 50
+  project_id         = var.project_id
+  region             = var.region
+  env                = local.env
+  image              = var.image
+  bucket_name        = module.storage.bucket_name
+  firestore_database = module.firestore.database_name
+  pepper_secret_id   = module.secrets.pepper_secret_id
+  public_domain      = var.domain
+  min_instances      = var.min_instances
+  max_instances      = var.max_instances
+  share_ttl_days     = var.share_ttl_days
+  max_upload_mb      = var.max_upload_mb
 }
 
 module "ops" {
   source = "../../modules/ops"
 
-  project_id    = var.project_id
-  region        = var.region
-  env           = local.env
-  bucket_name   = module.storage.bucket_name
-  alert_email   = var.alert_email
-  api_service   = module.api.service_name
-  sweeper_image = var.sweeper_image
+  project_id   = var.project_id
+  region       = var.region
+  env          = local.env
+  alert_email  = var.alert_email
+  service_name = module.app.service_name
 }

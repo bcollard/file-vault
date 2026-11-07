@@ -1,27 +1,21 @@
-output "api_neg_id" {
-  value = module.api.neg_id
+output "neg_id" {
+  description = "Serverless NEG for the file-vault service. Attach it as the only backend for your hostname — see docs/lb-setup.md."
+  value       = module.app.neg_id
 }
 
-output "web_neg_id" {
-  value = module.web.neg_id
-}
-
-output "api_service_url" {
-  value = module.api.service_url
-}
-
-output "web_service_url" {
-  value = module.web.service_url
+output "service_url" {
+  description = "*.run.app URL. Ingress is load-balancer-only, so this is not reachable directly."
+  value       = module.app.service_url
 }
 
 output "bucket_name" {
   value = module.storage.bucket_name
 }
 
-output "api_service_account" {
-  value = module.api.service_account
+output "service_account" {
+  value = module.app.service_account
 }
 
-output "web_service_account" {
-  value = module.web.service_account
+output "public_url" {
+  value = "https://${var.domain}"
 }

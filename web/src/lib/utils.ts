@@ -46,3 +46,7 @@ export function relativeTime(rfc3339: string | undefined | null): string {
 	if (minutes >= 1) return past ? `${unit(minutes, 'min')} ago` : `in ${unit(minutes, 'min')}`;
 	return past ? 'just now' : 'soon';
 }
+
+export function usesLabel(n: number): string {
+	return n === 1 ? 'one download' : `${n} downloads`;
+}

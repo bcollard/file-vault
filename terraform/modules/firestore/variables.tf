@@ -10,3 +10,9 @@ variable "region" {
 variable "env" {
   type = string
 }
+
+variable "delete_protection" {
+  type        = bool
+  default     = true
+  description = "Block deleting the database (and keep it if Terraform destroys the resource)."
+}
