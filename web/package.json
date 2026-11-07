@@ -12,7 +12,7 @@
     "build": "vite build",
     "check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-    "test": "node --test test/"
+    "test": "node --test test/*.test.ts"
   },
   "devDependencies": {
     "@lucide/svelte": "^1.70.0",
