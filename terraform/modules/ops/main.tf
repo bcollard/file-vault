@@ -21,7 +21,19 @@ resource "google_logging_metric" "rejected_reuse" {
   }
 }
 
+# A new log-based metric takes a few minutes before alert policies can
+# reference it; without this wait the first apply fails with a 404.
+resource "time_sleep" "metric_propagation" {
+  create_duration = "180s"
+
+  triggers = {
+    metric = google_logging_metric.rejected_reuse.id
+  }
+}
+
 resource "google_monitoring_alert_policy" "reuse_spike" {
+  depends_on = [time_sleep.metric_propagation]
+
   project      = var.project_id
   display_name = "file-vault: rejected reuse spike (${var.env})"
   combiner     = "OR"
