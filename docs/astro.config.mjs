@@ -2,6 +2,20 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+// Google Analytics (GA4) tag, only when the docs workflow passes
+// GA_MEASUREMENT_ID (a repository variable). Forks and local builds get none.
+/** @param {string | undefined} id */
+function analytics(id) {
+	if (!id || !/^G-[A-Z0-9]+$/.test(id)) return [];
+	return [
+		{ tag: 'script', attrs: { async: true, src: `https://www.googletagmanager.com/gtag/js?id=${id}` } },
+		{
+			tag: 'script',
+			content: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${id}');`
+		}
+	];
+}
+
 // Published to GitHub Pages as a project site: https://<owner>.github.io/<repo>/.
 // The Pages workflow sets SITE and BASE from the repository, so forks publish
 // under their own owner and name without editing this file.
@@ -20,7 +34,8 @@ export default defineConfig({
 				{
 					tag: 'script',
 					attrs: { src: `${(process.env.BASE ?? '/').replace(/\/?$/, '/')}zoom.js`, defer: true }
-				}
+				},
+				...analytics(process.env.GA_MEASUREMENT_ID)
 			],
 			social: process.env.REPO_URL
 				? [{ icon: 'github', label: 'GitHub', href: process.env.REPO_URL }]

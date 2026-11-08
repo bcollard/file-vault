@@ -55,6 +55,7 @@ jobs:
       - run: npm run build
         env:
           RELEASE_VERSION: ${{ steps.release.outputs.version }}
+          GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
           RELEASE_URL: ${{ steps.release.outputs.url }}
           SITE: ${{ steps.pages.outputs.origin || 'https://example.github.io' }}
           BASE: ${{ steps.pages.outputs.base_path || format('/{0}', github.event.repository.name) }}
