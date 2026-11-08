@@ -52,6 +52,11 @@ resource "google_cloud_run_v2_service" "app" {
     containers {
       image = var.image
 
+      # Cloud Run does not inject the project ID; the app requires it.
+      env {
+        name  = "GOOGLE_CLOUD_PROJECT"
+        value = var.project_id
+      }
       env {
         name  = "BUCKET_NAME"
         value = var.bucket_name

@@ -99,7 +99,7 @@ func Load() (*Config, error) {
 	}
 
 	if c.ProjectID == "" {
-		return nil, fmt.Errorf("GOOGLE_CLOUD_PROJECT not set (Cloud Run injects this automatically)")
+		return nil, fmt.Errorf("GOOGLE_CLOUD_PROJECT required")
 	}
 	if c.BucketName == "" {
 		return nil, fmt.Errorf("BUCKET_NAME required")
