@@ -1,21 +1,31 @@
 name: Release
 
-# Push a tag like v0.2.0 to publish a GitHub release with generated notes.
-# The job then rebuilds the docs so the header shows the new version.
-# Deploys are unaffected: main deploys on every push.
+# Push a tag like v0.2.0 to publish a GitHub release with generated notes and
+# a public multi-arch image at ghcr.io/<owner>/file-vault:<version> (plus
+# :latest). The release job then rebuilds the docs so the header shows the new
+# version. Deploys are unaffected: main deploys on every push, from Artifact
+# Registry.
+#
+# To publish the image for a tag that already has a release, run this workflow
+# by hand with that tag: only the image job runs.
 
 on:
   push:
     tags: ['v*.*.*']
-
-permissions:
-  contents: write
-  actions: write
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing tag to publish the image for (e.g. v0.1.0)
+        required: true
 
 jobs:
   release:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    permissions:
+      contents: write
+      actions: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - env:
@@ -26,3 +36,54 @@ jobs:
           # Releases made with GITHUB_TOKEN don't trigger other workflows
           # (only workflow_dispatch does), so rebuild the docs explicitly.
           gh workflow run docs.yaml --ref main
+
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      - name: Check the tag
+        run: |
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::$TAG is not a vX.Y.Z tag" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - id: meta
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ env.TAG }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.version=${{ env.TAG }}
+
+      # The Dockerfile builds the UI and cross-compiles Go on the runner's own
+      # platform, and the final stage only copies the binary, so the arm64
+      # image needs no emulation.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
