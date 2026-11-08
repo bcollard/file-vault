@@ -119,10 +119,11 @@ jobs:
       - name: Smoke test
         # Fails until the load balancer routes the domain to this service.
         continue-on-error: true
+        timeout-minutes: 3
         run: |
           url="$(terraform output -raw public_url)"
           for i in $(seq 1 12); do
-            if curl -fsS "${url}/api/config" > /dev/null; then echo "OK ${url}"; exit 0; fi
+            if curl -fsS --max-time 10 "${url}/api/config" > /dev/null; then echo "OK ${url}"; exit 0; fi
             sleep 10
           done
           echo "::warning::${url} did not answer; check the load balancer and DNS."
