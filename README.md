@@ -1,23 +1,23 @@
 # file-vault
 
-End-to-end encrypted, self-destructing file sharing on Google Cloud. Upload a
+End-to-end encrypted file sharing with expiring, limited-use links, on Google Cloud. Upload a
 file, get two links: a **download link** with configurable expiry and use
 count, and an **admin link** to issue more download links, revoke them, or
 delete the share.
 
 - **End-to-end encrypted.** The browser encrypts the file (AES-256-GCM,
   chunked) before upload. The server and the bucket only ever hold ciphertext
-  and an encrypted name. The key travels in the URL fragment (`#…`), which
-  browsers never send to a server.
+  and an encrypted name. The key is in the URL fragment (`#…`), which
+  browsers don't send to servers.
 - **No accounts.** Links are the credentials: `/d#<token>.<key>` and
   `/a#<admin-token>.<key>`. Tokens are 256-bit random, HMAC-hashed at rest,
   and only ever sent in POST bodies, so no request log records one.
 - **Preview-safe.** Opening a download link only checks it. A use is consumed
   when the recipient clicks Download, so Slack, Outlook Safe Links or iMessage
-  previews can't burn it.
-- **Atomic burn** in a Firestore transaction: concurrent clicks on a one-time
+  previews don't count as downloads.
+- **Atomic download counting** in a Firestore transaction: concurrent clicks on a one-time
   link can't both succeed.
-- **Direct-to-storage transfers.** The browser uploads ciphertext straight to
+- **Direct-to-storage transfers.** The browser uploads ciphertext directly to
   Cloud Storage through a resumable session the server opens with a fixed
   size, and downloads through a 60-second signed URL. Files up to 1 GiB by
   default; the service never proxies bytes.

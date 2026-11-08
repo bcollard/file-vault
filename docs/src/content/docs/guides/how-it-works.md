@@ -18,7 +18,7 @@ Everything after `#` is the URL fragment. Browsers keep the fragment on the clie
 2. It encrypts the file name, type and size with that key. This is the share's metadata.
 3. It calls `POST /api/shares` with the ciphertext size, the encrypted metadata, and the link settings (expiry, maximum downloads).
 4. The server opens a Cloud Storage resumable upload session pinned to that exact size, stores a pending share in Firestore, and returns the session URL and an admin token.
-5. The browser encrypts the file in 1 MiB records and uploads the ciphertext straight to the session URL in 8 MiB chunks. The file never passes through the Go service.
+5. The browser encrypts the file in 1 MiB records and uploads the ciphertext directly to the session URL in 8 MiB chunks. The file never passes through the Go service.
 6. The browser calls `POST /api/shares/finalize`. The server checks that the stored object has the declared size, marks the share ready, and creates the first download token.
 7. The browser builds both links by appending the token and the key after `#`.
 
@@ -26,7 +26,7 @@ Everything after `#` is the URL fragment. Browsers keep the fragment on the clie
 
 ## Downloading
 
-![Download sequence: peek without consuming, then burn on click, then fetch and decrypt.](../../../assets/diagrams/download-sequence.svg)
+![Download sequence: check the token without counting a download, count one download on click, then fetch and decrypt.](../../../assets/diagrams/download-sequence.svg)
 
 1. The recipient opens the download link. The page reads the token and the key from the fragment.
 2. It calls `POST /api/download/peek` with the token. This only checks the token: it doesn't consume a use. The page decrypts the metadata and shows the file name and size.
@@ -45,7 +45,7 @@ The admin link opens a console that shows the file name (decrypted with the key 
 - revoke every active download link
 - delete the share, which removes the encrypted object and every token
 
-![Admin console: file details, issue a new link, download links table, and the danger zone.](../../../assets/screenshots/admin.png)
+![Admin console: file details, issue a new link, download links table, and the revoke and delete buttons.](../../../assets/screenshots/admin.png)
 
 ## Expiry
 

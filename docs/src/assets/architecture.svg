@@ -23,15 +23,15 @@
   <text x="56" y="200" fill="#334155">Encrypted name, type, size</text>
 
   <rect x="40" y="230" width="248" height="86" rx="10" fill="#ffffff" stroke="#a5b4fc"/>
-  <text x="56" y="256" font-weight="600" fill="#1e1b4b">Capability links</text>
+  <text x="56" y="256" font-weight="600" fill="#1e1b4b">Links</text>
   <text x="56" y="280" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#334155">/d#&lt;token&gt;.&lt;key&gt;</text>
   <text x="56" y="300" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#334155">/a#&lt;admin&gt;.&lt;key&gt;</text>
 
   <text font-size="12.5" fill="#4338ca">
-    <tspan x="44" y="348">The # fragment never leaves</tspan>
-    <tspan x="44" y="366">the browser, so no server or</tspan>
-    <tspan x="44" y="384">log sees the tokens or the key.</tspan>
-    <tspan x="44" y="414">Tokens go only in POST bodies.</tspan>
+    <tspan x="44" y="348">Browsers don't send the #</tspan>
+    <tspan x="44" y="366">fragment to any server, so no</tspan>
+    <tspan x="44" y="384">log contains the tokens or key.</tspan>
+    <tspan x="44" y="414">Tokens are sent in POST bodies.</tspan>
   </text>
 
   <!-- Google Cloud -->
@@ -53,11 +53,13 @@
   <text x="408" y="292" fill="#475569">• Signs 60 s download URLs</text>
 
   <!-- Firestore -->
-  <rect x="716" y="56" width="260" height="120" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
-  <text x="736" y="86" font-size="15" font-weight="700" fill="#14532d">Firestore</text>
-  <text x="736" y="110" fill="#166534">Shares and encrypted metadata</text>
-  <text x="736" y="130" fill="#166534">Token hashes, uses left</text>
-  <text x="736" y="150" fill="#166534">Audit events, 30-day TTL</text>
+  <rect x="716" y="44" width="260" height="150" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="736" y="74" font-size="15" font-weight="700" fill="#14532d">Firestore</text>
+  <text x="736" y="98" fill="#166534">Shares and encrypted metadata</text>
+  <text x="736" y="118" fill="#166534">HMAC hashes of link tokens</text>
+  <text x="736" y="138" fill="#166534">Downloads remaining per link</text>
+  <text x="736" y="158" fill="#166534">Audit events, deleted after</text>
+  <text x="736" y="178" fill="#166534">30 days</text>
 
   <!-- Cloud Storage -->
   <rect x="716" y="236" width="260" height="136" rx="14" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
@@ -83,6 +85,6 @@
 
   <!-- Browser ⇄ bucket -->
   <path d="M164 460 V490 H846 V373" fill="none" stroke="#4f46e5" stroke-width="2" marker-start="url(#arrow-accent)" marker-end="url(#arrow-accent)"/>
-  <text x="505" y="480" text-anchor="middle" font-size="12.5" font-weight="600" fill="#4338ca">Ciphertext moves directly between the browser and the bucket</text>
+  <text x="505" y="480" text-anchor="middle" font-size="12.5" font-weight="600" fill="#4338ca">Ciphertext is transferred directly between the browser and the bucket</text>
   <text x="505" y="512" text-anchor="middle" font-size="12" fill="#4338ca">Resumable PUT in 8 MiB chunks · Signed GET, then decryption in the browser</text>
 </svg>

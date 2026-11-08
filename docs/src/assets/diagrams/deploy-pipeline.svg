@@ -20,7 +20,7 @@
 <text x="230" y="299.5" font-size="12.5" fill="#475569">terraform apply -var image=file-vault:&lt;sha&gt;</text>
 <path d="M431 180 L431 215" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
 <text x="441" y="202" font-size="12" fill="#475569">image tag</text>
-<text x="216" y="348" font-size="12.5" fill="#475569">No stored keys: Workload Identity Federation trades each</text>
+<text x="216" y="348" font-size="12.5" fill="#475569">No stored keys: Workload Identity Federation exchanges each</text>
 <text x="216" y="368" font-size="12.5" fill="#475569">job's GitHub OIDC token for a short-lived Google token.</text>
 <path d="M164 190 L180 190 L180 128 L215 128" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
 <rect x="700" y="24" width="276" height="370" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>

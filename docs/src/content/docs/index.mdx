@@ -1,9 +1,9 @@
 ---
 title: file-vault
-description: End-to-end encrypted, self-destructing file sharing you host on Google Cloud.
+description: End-to-end encrypted file sharing with expiring, limited-use links, hosted on your Google Cloud project.
 template: splash
 hero:
-  tagline: End-to-end encrypted, self-destructing file sharing. You host it on Google Cloud; it never sees your files.
+  tagline: End-to-end encrypted file sharing with expiring, limited-use links. You host it on Google Cloud, and the server can't read your files.
   actions:
     - text: How it works
       link: guides/how-it-works/
@@ -24,22 +24,22 @@ import admin from '../../assets/screenshots/admin.png';
 <CardGrid>
 	<Card title="Encrypted in the browser" icon="seti:lock">
 		Files and their names are encrypted with AES-256-GCM before upload. The server and the bucket
-		only store ciphertext. The key travels in the URL fragment, which browsers never send.
+		only store ciphertext. The key is in the URL fragment, which browsers don't send to servers.
 	</Card>
-	<Card title="Links that run out" icon="seti:clock">
+	<Card title="Expiring, limited-use links" icon="seti:clock">
 		Each download link has its own expiry (1 hour to 7 days) and use count (1 to 100). Shares are
 		deleted after 7 days.
 	</Card>
-	<Card title="Safe with link previews" icon="approve-check">
-		Opening a link only checks it. A use is consumed when the recipient clicks Download, so Slack,
-		Outlook or iMessage previews can't burn it.
+	<Card title="Link previews don't count" icon="approve-check">
+		Opening a link only checks it. A download is counted when the recipient clicks Download, so
+		Slack, Outlook or iMessage previews don't use up a one-time link.
 	</Card>
 	<Card title="No accounts" icon="seti:pipeline">
 		Links are the credentials. Tokens are random 256-bit values, stored as HMAC hashes, and never
 		appear in a URL path, so request logs can't leak them.
 	</Card>
 	<Card title="One small service" icon="rocket">
-		A single Go binary serves the UI and the API on Cloud Run. Uploads and downloads go straight
+		A single Go binary serves the UI and the API on Cloud Run. Uploads and downloads go directly
 		between the browser and Cloud Storage.
 	</Card>
 	<Card title="Deployed by GitHub Actions" icon="github">
@@ -48,7 +48,7 @@ import admin from '../../assets/screenshots/admin.png';
 	</Card>
 </CardGrid>
 
-## See it in action
+## Screenshots
 
 <Tabs>
 	<TabItem label="Upload">
@@ -61,14 +61,14 @@ import admin from '../../assets/screenshots/admin.png';
 	</TabItem>
 	<TabItem label="Recipient">
 		<Image class="screenshot" src={download} alt="Recipient page: decrypted file name, size, expiry, and the Download button." />
-		The recipient sees the decrypted file name. Opening the page doesn't use up the link; clicking Download does.
+		The recipient sees the decrypted file name. Opening the page doesn't count as a download; clicking Download does.
 	</TabItem>
 	<TabItem label="Admin console">
-		<Image class="screenshot" src={admin} alt="Admin console: file details, issue a new link, download links table, and the danger zone." />
+		<Image class="screenshot" src={admin} alt="Admin console: file details, issue a new link, download links table, and the revoke and delete buttons." />
 		Track each link's uses, issue new links, revoke them, or delete the share.
 	</TabItem>
 </Tabs>
 
 ## Architecture
 
-<Image class="diagram" src={architecture} alt="Architecture: the browser encrypts and talks to one Cloud Run service; ciphertext moves directly between the browser and Cloud Storage." />
+<Image class="diagram" src={architecture} alt="Architecture: the browser encrypts and talks to one Cloud Run service; ciphertext is transferred directly between the browser and Cloud Storage." />
