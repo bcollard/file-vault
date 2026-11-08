@@ -1,6 +1,6 @@
 ---
 title: Security model
-description: What file-vault protects against, how, and where its limits are.
+description: What the file-vault server can and cannot see, how links act as credentials, and the limits of encrypting in the browser.
 ---
 
 ## What the server can and can't see

@@ -1,6 +1,6 @@
 ---
 title: HTTP API
-description: The JSON endpoints the UI uses.
+description: "The file-vault JSON API: create a share, finalize the upload, check and download a link, and manage a share with its admin token."
 ---
 
 All endpoints accept and return JSON. Tokens are 43-character base64url strings and are always sent in the request body. Errors return `{"error": "<message>"}`.

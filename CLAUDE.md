@@ -77,6 +77,7 @@ load-bearing — don't remove or "simplify" without thinking about why.
   with explicit `.ts` extensions. `$lib` no longer exists.
 - **`web/package-lock.json` and `docs/package-lock.json` are committed.** CI uses `npm ci`.
 - **Releases:** push a `vX.Y.Z` tag; `release.yaml` creates the GitHub release and dispatches the docs build, whose header badge shows the latest release (read at build time). Deploys don't depend on tags: every push to `main` deploys.
+- **Docs share image:** `docs/public/og.png` is rendered from `docs/diagrams/og-card.svg` (command in the SVG header). Keep it free of deployment-specific URLs.
 - **Docs diagrams are generated:** edit `docs/diagrams/generate.py` and run it; it rewrites `docs/src/assets/diagrams/*.svg` and fails if any text overflows its box. Don't hand-edit the generated SVGs. `architecture.svg` is hand-written.
 - **Docs analytics:** the GA4 tag is added only when the `GA_MEASUREMENT_ID` repo variable is set (`docs/astro.config.mjs`). Never add analytics to the app (`web/`): page URLs there carry tokens and keys in the `#` fragment.
 - **Docs live in `docs/` (Starlight)** and publish to GitHub Pages via `docs.yaml`. Keep them in sync with behaviour changes, and keep them generic: site URL and base path come from the Pages config, not from hardcoded values.

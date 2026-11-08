@@ -2,6 +2,10 @@
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
 
+const SITE = process.env.SITE ?? 'http://localhost:4321';
+const BASE = (process.env.BASE ?? '/').replace(/\/?$/, '/');
+const OG_IMAGE = new URL(`${BASE}og.png`, SITE).href;
+
 // Google Analytics (GA4) tag, only when the docs workflow passes
 // GA_MEASUREMENT_ID (a repository variable). Forks and local builds get none.
 /** @param {string | undefined} id */
@@ -20,8 +24,8 @@ function analytics(id) {
 // The Pages workflow sets SITE and BASE from the repository, so forks publish
 // under their own owner and name without editing this file.
 export default defineConfig({
-	site: process.env.SITE ?? 'http://localhost:4321',
-	base: process.env.BASE ?? '/',
+	site: SITE,
+	base: BASE,
 	integrations: [
 		starlight({
 			title: 'file-vault',
@@ -33,8 +37,12 @@ export default defineConfig({
 			head: [
 				{
 					tag: 'script',
-					attrs: { src: `${(process.env.BASE ?? '/').replace(/\/?$/, '/')}zoom.js`, defer: true }
+					attrs: { src: `${BASE}zoom.js`, defer: true }
 				},
+				{ tag: 'meta', attrs: { property: 'og:image', content: OG_IMAGE } },
+				{ tag: 'meta', attrs: { property: 'og:image:width', content: '1200' } },
+				{ tag: 'meta', attrs: { property: 'og:image:height', content: '630' } },
+				{ tag: 'meta', attrs: { name: 'twitter:image', content: OG_IMAGE } },
 				...analytics(process.env.GA_MEASUREMENT_ID)
 			],
 			social: process.env.REPO_URL

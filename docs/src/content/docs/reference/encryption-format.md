@@ -1,6 +1,6 @@
 ---
 title: Encryption format
-description: The FVE1 ciphertext format, key derivation and metadata encoding.
+description: "The FVE1 ciphertext format used by file-vault: HKDF key derivation, AES-256-GCM records, nonces, and metadata encoding."
 ---
 
 All cryptography runs in the browser with WebCrypto. The implementation is `web/src/lib/crypto.ts`.

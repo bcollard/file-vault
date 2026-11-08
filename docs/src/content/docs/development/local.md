@@ -1,6 +1,6 @@
 ---
 title: Local development
-description: Run the whole app on your machine without GCP, and run the tests.
+description: Run file-vault on your machine without a Google Cloud account, with hot reload, and run the Go, crypto and end-to-end tests.
 ---
 
 `LOCAL_MODE=1` swaps Firestore and Cloud Storage for an in-memory store and a local directory that speaks the same resumable-upload protocol. The full flow, encryption included, runs without any cloud account.
