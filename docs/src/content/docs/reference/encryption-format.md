@@ -5,6 +5,8 @@ description: The FVE1 ciphertext format, key derivation and metadata encoding.
 
 All cryptography runs in the browser with WebCrypto. The implementation is `web/src/lib/crypto.ts`.
 
+![Key derivation from the file key into a content key and a metadata key, and the FVE1 layout: magic header followed by AES-GCM records.](../../../assets/diagrams/encryption-format.svg)
+
 ## Key
 
 - A fresh 256-bit key is generated for every share with `crypto.getRandomValues`.

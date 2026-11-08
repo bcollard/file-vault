@@ -28,3 +28,38 @@
 	width: 100%;
 	max-width: 960px;
 }
+
+/* Diagrams in Markdown pages (SVG assets): centered and framed like the home page diagram. */
+.sl-markdown-content img[src$='.svg'] {
+	display: block;
+	margin-inline: auto;
+	width: 100%;
+	max-width: 960px;
+	height: auto;
+	border-radius: 0.75rem;
+	border: 1px solid var(--sl-color-gray-5);
+}
+
+/* Click-to-enlarge (public/zoom.js). */
+.sl-markdown-content img[src$='.svg'],
+.sl-markdown-content img.screenshot {
+	cursor: zoom-in;
+}
+.zoom-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	display: grid;
+	place-items: center;
+	padding: 2vmin;
+	background: rgb(0 0 0 / 0.8);
+	cursor: zoom-out;
+}
+.zoom-overlay img {
+	max-width: 96vw;
+	max-height: 96vh;
+	width: auto;
+	height: auto;
+	border-radius: 0.75rem;
+	background: #fff;
+}

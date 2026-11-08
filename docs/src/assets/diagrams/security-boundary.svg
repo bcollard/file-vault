@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+<title>What crosses the trust boundary</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4f46e5"/></marker></defs>
+<rect width="1000" height="400" fill="#ffffff"/>
+<rect x="24" y="24" width="330" height="350" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+<text x="42" y="52" font-size="15" fill="#14532d" font-weight="700">Your device</text>
+<text x="42" y="71" font-size="12.5" fill="#166534">Browser tab</text>
+<rect x="44" y="84" width="290" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="58" y="111.5" font-size="13.5" fill="#0f172a" font-weight="600">Never leaves the browser</text>
+<text x="58" y="131.5" font-size="12.5" fill="#475569">File content in clear</text>
+<text x="58" y="149.5" font-size="12.5" fill="#475569">File name and type</text>
+<text x="58" y="167.5" font-size="12.5" fill="#475569">Decryption key (URL #fragment)</text>
+<rect x="44" y="244" width="290" height="110" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="58" y="271.5" font-size="13.5" fill="#0f172a" font-weight="600">Sent, protected</text>
+<text x="58" y="291.5" font-size="12.5" fill="#475569">Ciphertext, 1 MiB AES-GCM records</text>
+<text x="58" y="309.5" font-size="12.5" fill="#475569">Encrypted metadata blob</text>
+<text x="58" y="327.5" font-size="12.5" fill="#475569">Raw token, in a POST body only</text>
+<rect x="646" y="24" width="330" height="350" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="664" y="52" font-size="15" fill="#0f172a" font-weight="700">Google Cloud</text>
+<text x="664" y="71" font-size="12.5" fill="#475569">Service, Firestore, bucket, logs</text>
+<rect x="666" y="84" width="290" height="140" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="680" y="111.5" font-size="13.5" fill="#0f172a" font-weight="600">Stored</text>
+<text x="680" y="131.5" font-size="12.5" fill="#475569">Ciphertext in the bucket</text>
+<text x="680" y="149.5" font-size="12.5" fill="#475569">Encrypted metadata</text>
+<text x="680" y="167.5" font-size="12.5" fill="#475569">HMAC(pepper, token), uses left</text>
+<rect x="666" y="244" width="290" height="110" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="680" y="271.5" font-size="13.5" fill="#0f172a" font-weight="600">Visible</text>
+<text x="680" y="291.5" font-size="12.5" fill="#475569">Ciphertext size</text>
+<text x="680" y="309.5" font-size="12.5" fill="#475569">Client IPs, kept 30 days</text>
+<text x="680" y="327.5" font-size="12.5" fill="#475569">Method, path, status in logs</text>
+<line x1="500" y1="40" x2="500" y2="360" stroke="#fb7185" stroke-width="2" stroke-dasharray="8 6"/>
+<text x="500" y="34" font-size="12.5" fill="#9f1239" font-weight="600" text-anchor="middle">Trust boundary</text>
+<path d="M334 300 L665 300" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>
+<rect x="420" y="276" width="160" height="18" fill="#ffffff"/>
+<text x="500" y="290" font-size="12" fill="#4f46e5" text-anchor="middle">Ciphertext, hashed lookups</text>
+<path d="M334 150 L480 150" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="410" y="140" font-size="12.5" fill="#9f1239" text-anchor="middle">Key</text>
+<path d="M486 140 l12 20 M498 140 l-12 20" stroke="#e11d48" stroke-width="2.5"/>
+<text x="484" y="190" font-size="12" fill="#9f1239" text-anchor="end">The key never</text>
+<text x="484" y="206" font-size="12" fill="#9f1239" text-anchor="end">crosses.</text>
+</svg>

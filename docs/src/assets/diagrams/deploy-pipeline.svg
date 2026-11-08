@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 420" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+<title>Deploy pipeline</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4f46e5"/></marker></defs>
+<rect width="1000" height="420" fill="#ffffff"/>
+<rect x="24" y="152" width="140" height="76" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.2"/>
+<text x="38" y="179.5" font-size="13.5" fill="#312e81" font-weight="600">git push</text>
+<text x="38" y="199.5" font-size="12.5" fill="#4338ca">to main</text>
+<rect x="196" y="24" width="470" height="370" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="214" y="52" font-size="15" fill="#0f172a" font-weight="700">GitHub Actions</text>
+<text x="214" y="71" font-size="12.5" fill="#475569">deploy.yaml, on every push to main</text>
+<rect x="216" y="76" width="430" height="104" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="230" y="103.5" font-size="13.5" fill="#0f172a" font-weight="600">Build job</text>
+<text x="230" y="123.5" font-size="12.5" fill="#475569">Authenticates as gha-build SA (WIF)</text>
+<text x="230" y="141.5" font-size="12.5" fill="#475569">Builds one image: UI embedded in the Go binary</text>
+<text x="230" y="159.5" font-size="12.5" fill="#475569">Pushes file-vault:&lt;sha&gt;</text>
+<rect x="216" y="216" width="430" height="104" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="230" y="243.5" font-size="13.5" fill="#0f172a" font-weight="600">Deploy job</text>
+<text x="230" y="263.5" font-size="12.5" fill="#475569">Authenticates as gha-tf SA (WIF)</text>
+<text x="230" y="281.5" font-size="12.5" fill="#475569">Writes terraform.tfvars from the TFVARS secret</text>
+<text x="230" y="299.5" font-size="12.5" fill="#475569">terraform apply -var image=file-vault:&lt;sha&gt;</text>
+<path d="M431 180 L431 215" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="441" y="202" font-size="12" fill="#475569">image tag</text>
+<text x="216" y="348" font-size="12.5" fill="#475569">No stored keys: Workload Identity Federation trades each</text>
+<text x="216" y="368" font-size="12.5" fill="#475569">job's GitHub OIDC token for a short-lived Google token.</text>
+<path d="M164 190 L180 190 L180 128 L215 128" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<rect x="700" y="24" width="276" height="370" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+<text x="718" y="52" font-size="15" fill="#0f172a" font-weight="700">Google Cloud</text>
+<text x="718" y="71" font-size="12.5" fill="#475569">Your project</text>
+<rect x="718" y="76" width="240" height="64" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="732" y="103.5" font-size="13.5" fill="#0f172a" font-weight="600">Artifact Registry</text>
+<text x="732" y="123.5" font-size="12.5" fill="#475569">file-vault:&lt;sha&gt;</text>
+<rect x="718" y="176" width="240" height="64" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="732" y="203.5" font-size="13.5" fill="#0f172a" font-weight="600">Terraform state</text>
+<text x="732" y="223.5" font-size="12.5" fill="#475569">GCS bucket, versioned</text>
+<rect x="718" y="260" width="240" height="104" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="732" y="287.5" font-size="13.5" fill="#0f172a" font-weight="600">Applied resources</text>
+<text x="732" y="307.5" font-size="12.5" fill="#475569">Cloud Run revision, NEG</text>
+<text x="732" y="325.5" font-size="12.5" fill="#475569">Bucket, Firestore, KMS</text>
+<text x="732" y="343.5" font-size="12.5" fill="#475569">Secret, alert policy</text>
+<path d="M646 108 L717 108" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M646 232 L717 232" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M646 300 L717 300" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+</svg>

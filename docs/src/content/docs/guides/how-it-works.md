@@ -12,6 +12,8 @@ Everything after `#` is the URL fragment. Browsers keep the fragment on the clie
 
 ## Uploading
 
+![Upload sequence between the browser, the file-vault service, Firestore and Cloud Storage.](../../../assets/diagrams/upload-sequence.svg)
+
 1. The browser generates a random 256-bit key.
 2. It encrypts the file name, type and size with that key. This is the share's metadata.
 3. It calls `POST /api/shares` with the ciphertext size, the encrypted metadata, and the link settings (expiry, maximum downloads).
@@ -23,6 +25,8 @@ Everything after `#` is the URL fragment. Browsers keep the fragment on the clie
 ![Share ready: the download link to send and the admin link to keep.](../../../assets/screenshots/share-ready.png)
 
 ## Downloading
+
+![Download sequence: peek without consuming, then burn on click, then fetch and decrypt.](../../../assets/diagrams/download-sequence.svg)
 
 1. The recipient opens the download link. The page reads the token and the key from the fragment.
 2. It calls `POST /api/download/peek` with the token. This only checks the token: it doesn't consume a use. The page decrypts the metadata and shows the file name and size.
