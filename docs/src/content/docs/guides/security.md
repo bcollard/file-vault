@@ -5,6 +5,8 @@ description: What file-vault protects against, how, and where its limits are.
 
 ## What the server can and can't see
 
+![Trust boundary: the key and plaintext stay on your device; only ciphertext and hashed lookups reach Google Cloud.](../../../assets/diagrams/security-boundary.svg)
+
 | Data | Server sees it? |
 |---|---|
 | File content | No: only AES-256-GCM ciphertext |

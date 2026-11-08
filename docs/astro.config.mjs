@@ -16,6 +16,12 @@ export default defineConfig({
 			favicon: '/favicon.svg',
 			customCss: ['./src/styles/theme.css'],
 			components: { SocialIcons: './src/components/SocialIcons.astro' },
+			head: [
+				{
+					tag: 'script',
+					attrs: { src: `${(process.env.BASE ?? '/').replace(/\/?$/, '/')}zoom.js`, defer: true }
+				}
+			],
 			social: process.env.REPO_URL
 				? [{ icon: 'github', label: 'GitHub', href: process.env.REPO_URL }]
 				: [],

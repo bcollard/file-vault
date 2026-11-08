@@ -7,6 +7,8 @@ Deploys run from GitHub Actions. Every push to `main` builds the container image
 
 Nothing deployment-specific is committed. Your project, bucket, domain and state bucket live in GitHub variables and secrets, and locally in gitignored files.
 
+![Deploy pipeline: a push to main runs a build job and a deploy job in GitHub Actions, authenticated with Workload Identity Federation.](../../../assets/diagrams/deploy-pipeline.svg)
+
 ## What gets created
 
 | Resource | Purpose |

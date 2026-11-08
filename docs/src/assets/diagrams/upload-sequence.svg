@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 586" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+<title>Upload sequence</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4f46e5"/></marker></defs>
+<rect width="1000" height="586" fill="#ffffff"/>
+<rect x="52.0" y="30" width="206.0" height="62" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.2"/>
+<text x="66.0" y="57.5" font-size="13.5" fill="#312e81" font-weight="600">Browser</text>
+<text x="66.0" y="77.5" font-size="12.5" fill="#4338ca">Sender or recipient</text>
+<rect x="282.0" y="30" width="206.0" height="62" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="296.0" y="57.5" font-size="13.5" fill="#0f172a" font-weight="600">file-vault</text>
+<text x="296.0" y="77.5" font-size="12.5" fill="#475569">Cloud Run service</text>
+<rect x="512.0" y="30" width="206.0" height="62" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.2"/>
+<text x="526.0" y="57.5" font-size="13.5" fill="#14532d" font-weight="600">Firestore</text>
+<text x="526.0" y="77.5" font-size="12.5" fill="#166534">Shares and tokens</text>
+<rect x="742.0" y="30" width="206.0" height="62" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.2"/>
+<text x="756.0" y="57.5" font-size="13.5" fill="#78350f" font-weight="600">Cloud Storage</text>
+<text x="756.0" y="77.5" font-size="12.5" fill="#92400e">Ciphertext</text>
+<line x1="155.0" y1="92" x2="155.0" y2="566" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="385.0" y1="92" x2="385.0" y2="566" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="615.0" y1="92" x2="615.0" y2="566" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4"/>
+<line x1="845.0" y1="92" x2="845.0" y2="566" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="3 4"/>
+<rect x="17.0" y="130" width="276.0" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc"/>
+<text x="155.0" y="149" font-size="12.5" fill="#312e81" text-anchor="middle">Generate a key, encrypt the metadata</text>
+<path d="M159.0 196 L381.0 196" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="270.0" y="189" font-size="12.5" fill="#0f172a" text-anchor="middle">POST /api/shares (size, encrypted metadata)</text>
+<path d="M389.0 236 L611.0 236" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="500.0" y="229" font-size="12.5" fill="#0f172a" text-anchor="middle">Pending share, admin token hash</text>
+<path d="M389.0 276 L841.0 276" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>
+<text x="615.0" y="269" font-size="12.5" fill="#0f172a" text-anchor="middle">Open resumable session, size pinned</text>
+<path d="M381.0 316 L159.0 316" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="270.0" y="309" font-size="12.5" fill="#475569" text-anchor="middle">Session URL, admin token</text>
+<path d="M159.0 356 L841.0 356" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>
+<text x="500.0" y="349" font-size="12.5" fill="#0f172a" text-anchor="middle">PUT encrypted chunks of 8 MiB</text>
+<path d="M159.0 396 L381.0 396" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="270.0" y="389" font-size="12.5" fill="#0f172a" text-anchor="middle">POST /api/shares/finalize</text>
+<path d="M389.0 436 L841.0 436" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>
+<text x="615.0" y="429" font-size="12.5" fill="#0f172a" text-anchor="middle">Check the object size</text>
+<path d="M389.0 476 L611.0 476" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="500.0" y="469" font-size="12.5" fill="#0f172a" text-anchor="middle">Mark ready, first download token</text>
+<path d="M381.0 516 L159.0 516" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+<text x="270.0" y="509" font-size="12.5" fill="#475569" text-anchor="middle">Download token</text>
+<rect x="20.5" y="530" width="269.0" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc"/>
+<text x="155.0" y="549" font-size="12.5" fill="#312e81" text-anchor="middle">Build /d#token.key and /a#admin.key</text>
+</svg>

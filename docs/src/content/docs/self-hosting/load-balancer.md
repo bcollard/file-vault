@@ -5,13 +5,7 @@ description: Route your hostname to the file-vault serverless NEG on an external
 
 Terraform creates one serverless NEG for the service but never touches your load balancer. Attach the NEG to the external HTTPS Application Load Balancer you already manage. Every path goes to the same backend, so there are no path rules to maintain.
 
-```
-  file-vault.example.com
-            |
-   [ external HTTPS LB ]  (+ Cloud Armor)
-            |
-   host rule → backend service → serverless NEG → Cloud Run
-```
+![Request path: DNS resolves to the load balancer; forwarding rule, HTTPS proxy and URL map route the host to a backend service, then the file-vault serverless NEG and Cloud Run.](../../../assets/diagrams/load-balancer.svg)
 
 Get the NEG from the deploy job summary, or:
 

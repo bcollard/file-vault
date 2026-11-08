@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 440" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+<title>Key derivation and FVE1 layout</title>
+<defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#475569"/></marker><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="#4f46e5"/></marker></defs>
+<rect width="1000" height="440" fill="#ffffff"/>
+<rect x="380" y="24" width="240" height="64" rx="10" fill="#eef2ff" stroke="#6366f1" stroke-width="1.2"/>
+<text x="394" y="51.5" font-size="13.5" fill="#312e81" font-weight="600">File key</text>
+<text x="394" y="71.5" font-size="12.5" fill="#4338ca">32 random bytes, in the link #</text>
+<rect x="200" y="128" width="270" height="84" rx="10" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.2"/>
+<text x="214" y="155.5" font-size="13.5" fill="#1e1b4b" font-weight="600">Content key</text>
+<text x="214" y="175.5" font-size="12.5" fill="#334155">info: file-vault/v1/content</text>
+<text x="214" y="193.5" font-size="12.5" fill="#334155">Encrypts every record</text>
+<rect x="530" y="128" width="270" height="84" rx="10" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.2"/>
+<text x="544" y="155.5" font-size="13.5" fill="#1e1b4b" font-weight="600">Metadata key</text>
+<text x="544" y="175.5" font-size="12.5" fill="#334155">info: file-vault/v1/meta</text>
+<text x="544" y="193.5" font-size="12.5" fill="#334155">Encrypts name, type and size</text>
+<path d="M470 88 L380 127" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<path d="M530 88 L620 127" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+<text x="500" y="114" font-size="12" fill="#475569" text-anchor="middle">HKDF-SHA256</text>
+<text x="24" y="234" font-size="13.5" fill="#0f172a" font-weight="600">Ciphertext object</text>
+<rect x="24" y="246" width="104" height="64" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.2"/>
+<text x="38" y="273" font-size="13" fill="#0f172a" font-weight="600">FVE1</text>
+<text x="38" y="293" font-size="12.5" fill="#475569">magic, 4 B</text>
+<rect x="140" y="246" width="220" height="64" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.2"/>
+<text x="154" y="273" font-size="13" fill="#78350f" font-weight="600">Record 0</text>
+<text x="154" y="293" font-size="12.5" fill="#92400e">1 MiB + 16 B tag</text>
+<rect x="372" y="246" width="220" height="64" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.2"/>
+<text x="386" y="273" font-size="13" fill="#78350f" font-weight="600">Record 1</text>
+<text x="386" y="293" font-size="12.5" fill="#92400e">1 MiB + 16 B tag</text>
+<rect x="604" y="246" width="100" height="64" rx="10" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="618" y="273" font-size="13" fill="#0f172a" font-weight="600">…</text>
+<rect x="716" y="246" width="260" height="64" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.2"/>
+<text x="730" y="273" font-size="13" fill="#78350f" font-weight="600">Last record</text>
+<text x="730" y="293" font-size="12.5" fill="#92400e">≤ 1 MiB + 16 B tag</text>
+<text x="24" y="350" font-size="12.5" fill="#334155">Each record: AES-256-GCM with the content key.</text>
+<text x="24" y="370" font-size="12.5" fill="#334155">Nonce = 4 zero bytes + record index (64-bit big-endian): reordering fails.</text>
+<text x="24" y="390" font-size="12.5" fill="#334155">Additional data = 1 byte: 0x01 on the last record, 0x00 otherwise: truncation fails.</text>
+<path d="M335 212 L250 245" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
+</svg>

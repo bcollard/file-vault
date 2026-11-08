@@ -18,6 +18,8 @@ make dev
 
 This starts the Go server on `:8080` in local mode and Vite on `:5173` with hot reload. Open http://localhost:5173. Vite proxies `/api` and `/_local` to Go.
 
+![Local mode: the browser talks to Vite, which proxies /api and /_local to the Go server running with an in-memory store and a local blob directory.](../../../assets/diagrams/local-dev.svg)
+
 To run the production binary instead:
 
 ```bash
