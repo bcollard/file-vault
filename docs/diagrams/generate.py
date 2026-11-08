@@ -184,11 +184,11 @@ sequence(
         ("self", 0, 0, "Read the token and the key from #"),
         ("call", 0, 1, "POST /api/download/peek"),
         ("call", 1, 2, "Read the token, no change"),
-        ("reply", 1, 0, "Encrypted metadata, uses left"),
+        ("reply", 1, 0, "Encrypted metadata, downloads remaining"),
         ("self", 0, 0, "Decrypt the file name, show Download"),
         ("divider", 0, 0, "The recipient clicks Download"),
         ("call", 0, 1, "POST /api/download/burn"),
-        ("call", 1, 2, "Transaction: uses left minus one"),
+        ("call", 1, 2, "Transaction: downloads remaining − 1"),
         ("reply", 1, 0, "Signed URL, valid 60 s"),
         ("call", 0, 3, "GET the ciphertext"),
         ("self", 0, 0, "Decrypt record by record, save"),
@@ -235,7 +235,7 @@ s.box(216, 76, 430, 104, "Build job", ["Authenticates as gha-build SA (WIF)", "B
 s.box(216, 216, 430, 104, "Deploy job", ["Authenticates as gha-tf SA (WIF)", "Writes terraform.tfvars from the TFVARS secret", "terraform apply -var image=file-vault:<sha>"])
 s.arrow([(431, 180), (431, 215)])
 s.text(441, 202, "image tag", size=12, color="#475569")
-s.text(216, 348, "No stored keys: Workload Identity Federation trades each", size=12.5, color="#475569")
+s.text(216, 348, "No stored keys: Workload Identity Federation exchanges each", size=12.5, color="#475569")
 s.text(216, 368, "job's GitHub OIDC token for a short-lived Google token.", size=12.5, color="#475569")
 s.arrow([(164, 190), (180, 190), (180, 128), (215, 128)])
 
@@ -250,25 +250,25 @@ s.save("deploy-pipeline.svg")
 
 # ---------------------------------------------------------------- security boundary
 
-s = Svg(1000, 400, "What crosses the trust boundary")
+s = Svg(1000, 400, "What reaches Google Cloud")
 s.frame(24, 24, 330, 350, "Your device", "Browser tab", style="green")
-s.box(44, 84, 290, 140, "Never leaves the browser", ["File content in clear", "File name and type", "Decryption key (URL #fragment)"], style="white")
+s.box(44, 84, 290, 140, "Stays in the browser", ["Unencrypted file content", "File name and type", "Decryption key (URL #fragment)"], style="white")
 s.box(44, 244, 290, 110, "Sent, protected", ["Ciphertext, 1 MiB AES-GCM records", "Encrypted metadata blob", "Raw token, in a POST body only"], style="white")
 
 s.frame(646, 24, 330, 350, "Google Cloud", "Service, Firestore, bucket, logs", style="slate")
-s.box(666, 84, 290, 140, "Stored", ["Ciphertext in the bucket", "Encrypted metadata", "HMAC(pepper, token), uses left"], style="white")
+s.box(666, 84, 290, 140, "Stored", ["Ciphertext in the bucket", "Encrypted metadata", "HMAC(pepper, token), downloads left"], style="white")
 s.box(666, 244, 290, 110, "Visible", ["Ciphertext size", "Client IPs, kept 30 days", "Method, path, status in logs"], style="white")
 
 s.add('<line x1="500" y1="40" x2="500" y2="360" stroke="#fb7185" stroke-width="2" stroke-dasharray="8 6"/>')
 s.text(500, 34, "Trust boundary", size=12.5, color="#9f1239", weight="600", anchor="middle")
 s.arrow([(334, 300), (665, 300)], accent=True)
 s.add('<rect x="420" y="276" width="160" height="18" fill="#ffffff"/>')
-s.text(500, 290, "Ciphertext, hashed lookups", size=12, color="#4f46e5", anchor="middle")
+s.text(500, 290, "Ciphertext and tokens", size=12, color="#4f46e5", anchor="middle")
 s.arrow([(334, 150), (480, 150)], dashed=True)
 s.text(410, 140, "Key", size=12.5, color="#9f1239", anchor="middle")
 s.add('<path d="M486 140 l12 20 M498 140 l-12 20" stroke="#e11d48" stroke-width="2.5"/>')
-s.text(484, 190, "The key never", size=12, color="#9f1239", anchor="end")
-s.text(484, 206, "crosses.", size=12, color="#9f1239", anchor="end")
+s.text(484, 190, "The key is never", size=12, color="#9f1239", anchor="end")
+s.text(484, 206, "sent to the server.", size=12, color="#9f1239", anchor="end")
 s.save("security-boundary.svg")
 
 # ---------------------------------------------------------------- encryption format
@@ -312,7 +312,7 @@ s.arrow([(450, 120), (529, 120)], label="/api", label_at=(490, 112))
 s.arrow([(450, 160), (490, 160), (490, 218), (529, 218)])
 s.text(482, 206, "/_local", size=12, color="#475569", anchor="end")
 s.arrow([(730, 120), (755, 120)])
-s.text(776, 204, "make e2e drives this same", size=12.5, color="#475569")
+s.text(776, 204, "make e2e runs this same", size=12.5, color="#475569")
 s.text(776, 222, "setup from Node with the", size=12.5, color="#475569")
 s.text(776, 240, "browser modules.", size=12.5, color="#475569")
 s.save("local-dev.svg")

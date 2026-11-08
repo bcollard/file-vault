@@ -3,7 +3,7 @@ title: HTTP API
 description: The JSON endpoints the UI uses.
 ---
 
-All endpoints accept and return JSON. Tokens are 43-character base64url strings and always travel in the request body. Errors return `{"error": "<message>"}`.
+All endpoints accept and return JSON. Tokens are 43-character base64url strings and are always sent in the request body. Errors return `{"error": "<message>"}`.
 
 Any failure involving a token (unknown, expired, revoked, used up, malformed) returns `404`, so responses don't reveal whether a token exists.
 

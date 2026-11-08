@@ -25,7 +25,7 @@
 <path d="M389.0 236 L611.0 236" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
 <text x="500.0" y="229" font-size="12.5" fill="#0f172a" text-anchor="middle">Read the token, no change</text>
 <path d="M381.0 276 L159.0 276" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
-<text x="270.0" y="269" font-size="12.5" fill="#475569" text-anchor="middle">Encrypted metadata, uses left</text>
+<text x="270.0" y="269" font-size="12.5" fill="#475569" text-anchor="middle">Encrypted metadata, downloads remaining</text>
 <rect x="17.0" y="290" width="276.0" height="28" rx="7" fill="#eef2ff" stroke="#a5b4fc"/>
 <text x="155.0" y="309" font-size="12.5" fill="#312e81" text-anchor="middle">Decrypt the file name, show Download</text>
 <line x1="40" y1="338" x2="960" y2="338" stroke="#e2e8f0"/>
@@ -33,7 +33,7 @@
 <path d="M159.0 396 L381.0 396" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
 <text x="270.0" y="389" font-size="12.5" fill="#0f172a" text-anchor="middle">POST /api/download/burn</text>
 <path d="M389.0 436 L611.0 436" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-<text x="500.0" y="429" font-size="12.5" fill="#0f172a" text-anchor="middle">Transaction: uses left minus one</text>
+<text x="500.0" y="429" font-size="12.5" fill="#0f172a" text-anchor="middle">Transaction: downloads remaining − 1</text>
 <path d="M381.0 476 L159.0 476" fill="none" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
 <text x="270.0" y="469" font-size="12.5" fill="#475569" text-anchor="middle">Signed URL, valid 60 s</text>
 <path d="M159.0 516 L841.0 516" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>

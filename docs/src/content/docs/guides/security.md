@@ -5,7 +5,7 @@ description: What file-vault protects against, how, and where its limits are.
 
 ## What the server can and can't see
 
-![Trust boundary: the key and plaintext stay on your device; only ciphertext and hashed lookups reach Google Cloud.](../../../assets/diagrams/security-boundary.svg)
+![Trust boundary: the key and plaintext stay on your device; only ciphertext and tokens are sent to Google Cloud.](../../../assets/diagrams/security-boundary.svg)
 
 | Data | Server sees it? |
 |---|---|
@@ -16,7 +16,7 @@ description: What file-vault protects against, how, and where its limits are.
 | File size | Approximately: ciphertext is the plaintext plus 16 bytes per MiB and a 4-byte header |
 | IP of downloads and admin actions | Yes, for the admin console and audit; audit events are deleted after 30 days |
 
-## Capability links
+## Links are the credentials
 
 There are no accounts. Whoever holds a link can use it:
 
@@ -33,7 +33,7 @@ Every endpoint takes tokens in a JSON POST body. No route has a token in its pat
 
 ## Link previews
 
-Opening a download link calls a read-only endpoint. The burn requires an explicit click. Chat apps and mail scanners that fetch or render links don't consume uses.
+Opening a download link calls a read-only endpoint. A download is counted only after an explicit click. Chat apps and mail scanners that fetch or render links don't consume uses.
 
 ## Downloads from the bucket
 
@@ -49,5 +49,5 @@ Signed download URLs are valid for 60 seconds and always force `Content-Disposit
 ## Limits of browser-based encryption
 
 - **You trust the deployment.** The server can't decrypt files, but it serves the JavaScript that encrypts them. Whoever controls the deployment could ship a modified UI. This applies to every web app that encrypts in the browser.
-- **Links are bearer secrets.** Anyone who sees a full link, in a chat history, an email archive or a screenshot, can use it while it's valid. Prefer one-time links with short expiry.
+- **Anyone with a link can use it.** Anyone who sees a full link, in a chat history, an email archive or a screenshot, can use it while it's valid. Prefer one-time links with short expiry.
 - **Downloads decrypt in memory.** The browser holds the decrypted file before saving it, which is why the default upload limit is 1 GiB.

@@ -35,7 +35,7 @@ LOCAL_MODE=1 ./bin/file-vault    # → http://localhost:8080
 | `make web-check` | `svelte-check` type checking |
 | `make web-test` | Encryption tests: round trips at record boundaries, and rejection of truncation, reordering, tampering and wrong keys |
 | `make test` | All three |
-| `make e2e` | Builds the binary, starts it in local mode, and runs a full encrypt, upload, finalize, burn, decrypt round trip with the browser modules from Node |
+| `make e2e` | Builds the binary, starts it in local mode, and runs a full encrypt, upload, finalize, download, decrypt round trip with the browser modules from Node |
 
 The store suite also runs against Firestore when `FIRESTORE_EMULATOR_HOST` is set:
 

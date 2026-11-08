@@ -313,7 +313,7 @@
 
 		<Card class="border-destructive/40">
 			<CardHeader>
-				<CardTitle class="text-base">Danger zone</CardTitle>
+				<CardTitle class="text-base">Revoke or delete</CardTitle>
 				<CardDescription>These can't be undone.</CardDescription>
 			</CardHeader>
 			<CardContent class="flex flex-col gap-3 sm:flex-row">

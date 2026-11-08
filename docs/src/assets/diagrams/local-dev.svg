@@ -28,7 +28,7 @@
 <path d="M450 160 L490 160 L490 218 L529 218" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
 <text x="482" y="206" font-size="12" fill="#475569" text-anchor="end">/_local</text>
 <path d="M730 120 L755 120" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-<text x="776" y="204" font-size="12.5" fill="#475569">make e2e drives this same</text>
+<text x="776" y="204" font-size="12.5" fill="#475569">make e2e runs this same</text>
 <text x="776" y="222" font-size="12.5" fill="#475569">setup from Node with the</text>
 <text x="776" y="240" font-size="12.5" fill="#475569">browser modules.</text>
 </svg>
