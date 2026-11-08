@@ -1,0 +1,47 @@
+---
+title: file-vault
+description: End-to-end encrypted, self-destructing file sharing you host on Google Cloud.
+template: splash
+hero:
+  tagline: End-to-end encrypted, self-destructing file sharing. You host it on Google Cloud; it never sees your files.
+  actions:
+    - text: How it works
+      link: guides/how-it-works/
+      icon: right-arrow
+    - text: Deploy your own
+      link: self-hosting/gcp/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Image } from 'astro:assets';
+import architecture from '../../assets/architecture.svg';
+
+<CardGrid>
+	<Card title="Encrypted in the browser" icon="seti:lock">
+		Files and their names are encrypted with AES-256-GCM before upload. The server and the bucket
+		only store ciphertext. The key travels in the URL fragment, which browsers never send.
+	</Card>
+	<Card title="Links that run out" icon="seti:clock">
+		Each download link has its own expiry (1 hour to 7 days) and use count (1 to 100). Shares are
+		deleted after 7 days.
+	</Card>
+	<Card title="Safe with link previews" icon="approve-check">
+		Opening a link only checks it. A use is consumed when the recipient clicks Download, so Slack,
+		Outlook or iMessage previews can't burn it.
+	</Card>
+	<Card title="No accounts" icon="seti:pipeline">
+		Links are the credentials. Tokens are random 256-bit values, stored as HMAC hashes, and never
+		appear in a URL path, so request logs can't leak them.
+	</Card>
+	<Card title="One small service" icon="rocket">
+		A single Go binary serves the UI and the API on Cloud Run. Uploads and downloads go straight
+		between the browser and Cloud Storage.
+	</Card>
+	<Card title="Deployed by GitHub Actions" icon="github">
+		Terraform for the infrastructure, Workload Identity Federation for CI, no keys. Nothing
+		deployment-specific lives in the repository.
+	</Card>
+</CardGrid>
+
+<Image src={architecture} alt="Architecture: the browser encrypts and talks to one Cloud Run service; ciphertext moves directly between the browser and Cloud Storage." />

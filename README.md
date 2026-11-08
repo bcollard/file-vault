@@ -24,7 +24,9 @@ delete the share.
 - **One service.** A single Go binary serves the UI (SvelteKit, built
   statically and embedded) and the JSON API.
 
-![architecture](docs/architecture.svg)
+**Documentation: https://bcollard.github.io/file-vault/**
+
+![architecture](docs/src/assets/architecture.svg)
 
 ## Layout
 
@@ -40,6 +42,7 @@ web/         SvelteKit 3 + Svelte 5 + Tailwind 4 UI (static, client-only)
   src/lib/transfer.ts  chunked upload, streaming download + decrypt
 terraform/   GCP infra: app (Cloud Run + NEG), storage, firestore (named DB), secrets, ops
 cicd/        WIF bootstrap script
+docs/        documentation site (Starlight), published to GitHub Pages
 Dockerfile   builds the UI, embeds it, ships one distroless image
 ```
 
@@ -115,7 +118,7 @@ You need a GCP project and an external HTTPS Application Load Balancer.
    shows the serverless NEG to attach.
 
 4. **Route your domain** to that NEG on the load balancer and point DNS at it:
-   [docs/lb-setup.md](docs/lb-setup.md).
+   [the load balancer guide](docs/src/content/docs/self-hosting/load-balancer.md).
 
 To run Terraform locally instead:
 

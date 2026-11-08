@@ -37,6 +37,10 @@ resource "google_cloud_run_v2_service" "app" {
   name     = "file-vault-${var.env}"
   location = var.region
 
+  # The service is stateless (data lives in Firestore and GCS), so allow
+  # Terraform to replace it, e.g. after a failed rollout taints it.
+  deletion_protection = false
+
   # Only the external load balancer can reach the service. TRUSTED_PROXY_HOPS
   # below assumes exactly that path when reading X-Forwarded-For.
   ingress = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"
