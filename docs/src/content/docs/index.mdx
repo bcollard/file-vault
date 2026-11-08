@@ -13,9 +13,13 @@ hero:
       variant: minimal
 ---
 
-import { Card, CardGrid } from '@astrojs/starlight/components';
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 import { Image } from 'astro:assets';
 import architecture from '../../assets/architecture.svg';
+import upload from '../../assets/screenshots/upload.png';
+import shareReady from '../../assets/screenshots/share-ready.png';
+import download from '../../assets/screenshots/download.png';
+import admin from '../../assets/screenshots/admin.png';
 
 <CardGrid>
 	<Card title="Encrypted in the browser" icon="seti:lock">
@@ -44,4 +48,27 @@ import architecture from '../../assets/architecture.svg';
 	</Card>
 </CardGrid>
 
-<Image src={architecture} alt="Architecture: the browser encrypts and talks to one Cloud Run service; ciphertext moves directly between the browser and Cloud Storage." />
+## See it in action
+
+<Tabs>
+	<TabItem label="Upload">
+		<Image class="screenshot" src={upload} alt="Upload page: drop zone, link settings, and the Encrypt and upload button." />
+		Pick a file and the link settings. The browser encrypts the file before anything leaves it.
+	</TabItem>
+	<TabItem label="Share ready">
+		<Image class="screenshot" src={shareReady} alt="Share ready: the download link to send and the admin link to keep." />
+		You get two links: one for your recipient, one to manage the share. Both carry the key after the `#`.
+	</TabItem>
+	<TabItem label="Recipient">
+		<Image class="screenshot" src={download} alt="Recipient page: decrypted file name, size, expiry, and the Download button." />
+		The recipient sees the decrypted file name. Opening the page doesn't use up the link; clicking Download does.
+	</TabItem>
+	<TabItem label="Admin console">
+		<Image class="screenshot" src={admin} alt="Admin console: file details, issue a new link, download links table, and the danger zone." />
+		Track each link's uses, issue new links, revoke them, or delete the share.
+	</TabItem>
+</Tabs>
+
+## Architecture
+
+<Image class="diagram" src={architecture} alt="Architecture: the browser encrypts and talks to one Cloud Run service; ciphertext moves directly between the browser and Cloud Storage." />

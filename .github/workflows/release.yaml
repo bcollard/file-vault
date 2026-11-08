@@ -1,0 +1,28 @@
+name: Release
+
+# Push a tag like v0.2.0 to publish a GitHub release with generated notes.
+# The job then rebuilds the docs so the header shows the new version.
+# Deploys are unaffected: main deploys on every push.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$TAG" --verify-tag --generate-notes --title "$TAG"
+          # Releases made with GITHUB_TOKEN don't trigger other workflows
+          # (only workflow_dispatch does), so rebuild the docs explicitly.
+          gh workflow run docs.yaml --ref main

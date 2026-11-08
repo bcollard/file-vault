@@ -1,68 +1,88 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 470" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="13">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 540" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif" font-size="13">
+  <title>file-vault architecture</title>
   <defs>
-    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 10 5 0 10z" fill="#475569"/>
     </marker>
-    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 10 5 0 10z" fill="#4f46e5"/>
     </marker>
   </defs>
-  <rect width="960" height="470" fill="#ffffff"/>
 
-  <!-- browser -->
-  <rect x="24" y="40" width="250" height="390" rx="14" fill="#eef2ff" stroke="#6366f1"/>
-  <text x="44" y="70" font-weight="700" font-size="15" fill="#312e81">Browser (sender / recipient)</text>
-  <text x="44" y="96" fill="#3730a3">SvelteKit UI, static</text>
-  <rect x="44" y="114" width="210" height="92" rx="10" fill="#fff" stroke="#a5b4fc"/>
-  <text x="58" y="138" font-weight="600" fill="#1e1b4b">WebCrypto</text>
-  <text x="58" y="158" fill="#334155">AES-256-GCM, 1 MiB records</text>
-  <text x="58" y="176" fill="#334155">key = 32 random bytes</text>
-  <text x="58" y="194" fill="#334155">encrypted name / type / size</text>
-  <rect x="44" y="222" width="210" height="74" rx="10" fill="#fff" stroke="#a5b4fc"/>
-  <text x="58" y="246" font-weight="600" fill="#1e1b4b">Links</text>
-  <text x="58" y="266" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#334155">/d#&lt;token&gt;.&lt;key&gt;</text>
-  <text x="58" y="284" font-family="ui-monospace, Menlo, monospace" font-size="12" fill="#334155">/a#&lt;admin&gt;.&lt;key&gt;</text>
-  <text x="44" y="324" fill="#4338ca" font-size="12">The # fragment never leaves the browser:</text>
-  <text x="44" y="342" fill="#4338ca" font-size="12">no server or log sees tokens or the key.</text>
-  <text x="44" y="372" fill="#4338ca" font-size="12">Tokens go only in POST bodies.</text>
+  <rect width="1000" height="540" fill="#ffffff"/>
 
-  <!-- LB + service -->
-  <rect x="352" y="40" width="250" height="250" rx="14" fill="#f8fafc" stroke="#94a3b8"/>
-  <text x="372" y="70" font-weight="700" font-size="15" fill="#0f172a">Google Cloud</text>
-  <rect x="372" y="86" width="210" height="44" rx="10" fill="#fff" stroke="#cbd5e1"/>
-  <text x="386" y="113" fill="#0f172a">External HTTPS LB + Cloud Armor</text>
-  <rect x="372" y="146" width="210" height="128" rx="10" fill="#fff" stroke="#334155" stroke-width="1.5"/>
-  <text x="386" y="170" font-weight="600" fill="#0f172a">Cloud Run: file-vault</text>
-  <text x="386" y="190" fill="#475569">one Go binary</text>
-  <text x="386" y="210" fill="#475569">• embedded UI</text>
-  <text x="386" y="228" fill="#475569">• JSON API, HMAC'd tokens</text>
-  <text x="386" y="246" fill="#475569">• opens upload sessions,</text>
-  <text x="386" y="262" fill="#475569">   signs 60 s download URLs</text>
-  <line x1="477" y1="130" x2="477" y2="145" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
+  <!-- Browser -->
+  <rect x="24" y="40" width="280" height="420" rx="14" fill="#eef2ff" stroke="#6366f1" stroke-width="1.5"/>
+  <text x="44" y="72" font-size="16" font-weight="700" fill="#312e81">Browser</text>
+  <text x="44" y="92" fill="#4338ca">Sender and recipient</text>
 
-  <!-- data stores -->
-  <rect x="680" y="60" width="256" height="104" rx="14" fill="#f0fdf4" stroke="#22c55e"/>
-  <text x="700" y="88" font-weight="700" fill="#14532d">Firestore</text>
-  <text x="700" y="110" fill="#166534">shares (encrypted meta, size)</text>
-  <text x="700" y="128" fill="#166534">token hashes, uses left</text>
-  <text x="700" y="146" fill="#166534">audit events, TTL 30 days</text>
+  <rect x="40" y="110" width="248" height="104" rx="10" fill="#ffffff" stroke="#a5b4fc"/>
+  <text x="56" y="136" font-weight="600" fill="#1e1b4b">WebCrypto</text>
+  <text x="56" y="160" fill="#334155">AES-256-GCM, 1 MiB records</text>
+  <text x="56" y="180" fill="#334155">New 256-bit key per file</text>
+  <text x="56" y="200" fill="#334155">Encrypted name, type, size</text>
 
-  <rect x="680" y="250" width="256" height="104" rx="14" fill="#fffbeb" stroke="#f59e0b"/>
-  <text x="700" y="278" font-weight="700" fill="#78350f">Cloud Storage (CMEK)</text>
-  <text x="700" y="300" fill="#92400e">ciphertext only: "FVE1" + records</text>
-  <text x="700" y="318" fill="#92400e">deleted after 7 days</text>
-  <text x="700" y="336" fill="#92400e">CORS: GET, PUT from the UI origin</text>
+  <rect x="40" y="230" width="248" height="86" rx="10" fill="#ffffff" stroke="#a5b4fc"/>
+  <text x="56" y="256" font-weight="600" fill="#1e1b4b">Capability links</text>
+  <text x="56" y="280" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#334155">/d#&lt;token&gt;.&lt;key&gt;</text>
+  <text x="56" y="300" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="12" fill="#334155">/a#&lt;admin&gt;.&lt;key&gt;</text>
 
-  <!-- arrows -->
-  <line x1="274" y1="108" x2="371" y2="108" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <text x="284" y="98" fill="#475569" font-size="12">UI + API</text>
+  <text font-size="12.5" fill="#4338ca">
+    <tspan x="44" y="348">The # fragment never leaves</tspan>
+    <tspan x="44" y="366">the browser, so no server or</tspan>
+    <tspan x="44" y="384">log sees the tokens or the key.</tspan>
+    <tspan x="44" y="414">Tokens go only in POST bodies.</tspan>
+  </text>
 
-  <line x1="582" y1="190" x2="679" y2="130" stroke="#475569" stroke-width="1.5" marker-end="url(#a)"/>
-  <line x1="582" y1="240" x2="679" y2="290" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#a)"/>
-  <text x="590" y="322" fill="#475569" font-size="12">start session,</text>
-  <text x="590" y="338" fill="#475569" font-size="12">stat, delete</text>
+  <!-- Google Cloud -->
+  <rect x="372" y="40" width="300" height="290" rx="14" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="392" y="72" font-size="16" font-weight="700" fill="#0f172a">Google Cloud</text>
 
-  <path d="M274 400 H808 V355" fill="none" stroke="#4f46e5" stroke-width="2" marker-end="url(#b)"/>
-  <text x="300" y="392" fill="#4338ca" font-weight="600" font-size="12">ciphertext, browser ⇄ bucket directly</text>
-  <text x="300" y="420" fill="#4338ca" font-size="12">resumable PUT (8 MiB chunks) · signed GET, then decrypt in the browser</text>
+  <rect x="392" y="88" width="260" height="58" rx="10" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="408" y="112" font-weight="600" fill="#0f172a">External HTTPS load balancer</text>
+  <text x="408" y="132" fill="#475569">Managed TLS, Cloud Armor</text>
+
+  <line x1="522" y1="146" x2="522" y2="163" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="392" y="164" width="260" height="150" rx="10" fill="#ffffff" stroke="#334155" stroke-width="1.5"/>
+  <text x="408" y="188" font-weight="600" fill="#0f172a">Cloud Run: file-vault</text>
+  <text x="408" y="208" fill="#475569">One Go binary</text>
+  <text x="408" y="232" fill="#475569">• Embedded UI</text>
+  <text x="408" y="252" fill="#475569">• JSON API, HMAC-hashed tokens</text>
+  <text x="408" y="272" fill="#475569">• Opens upload sessions</text>
+  <text x="408" y="292" fill="#475569">• Signs 60 s download URLs</text>
+
+  <!-- Firestore -->
+  <rect x="716" y="56" width="260" height="120" rx="14" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="736" y="86" font-size="15" font-weight="700" fill="#14532d">Firestore</text>
+  <text x="736" y="110" fill="#166534">Shares and encrypted metadata</text>
+  <text x="736" y="130" fill="#166534">Token hashes, uses left</text>
+  <text x="736" y="150" fill="#166534">Audit events, 30-day TTL</text>
+
+  <!-- Cloud Storage -->
+  <rect x="716" y="236" width="260" height="136" rx="14" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="736" y="266" font-size="15" font-weight="700" fill="#78350f">Cloud Storage (CMEK)</text>
+  <text x="736" y="290" fill="#92400e">Ciphertext only, FVE1 format</text>
+  <text x="736" y="310" fill="#92400e">Deleted after 7 days</text>
+  <text x="736" y="330" fill="#92400e">CORS: GET and PUT</text>
+  <text x="736" y="350" fill="#92400e">configured for the UI origin</text>
+
+  <!-- Browser → service -->
+  <line x1="304" y1="117" x2="371" y2="117" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="338" y="107" text-anchor="middle" font-size="12" fill="#475569">HTTPS</text>
+
+  <!-- Service → Firestore -->
+  <line x1="652" y1="200" x2="715" y2="140" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- Service → Cloud Storage -->
+  <line x1="652" y1="280" x2="715" y2="300" stroke="#475569" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <text text-anchor="end" font-size="12" fill="#475569">
+    <tspan x="700" y="354">Open session,</tspan>
+    <tspan x="700" y="370">stat, delete</tspan>
+  </text>
+
+  <!-- Browser ⇄ bucket -->
+  <path d="M164 460 V490 H846 V373" fill="none" stroke="#4f46e5" stroke-width="2" marker-start="url(#arrow-accent)" marker-end="url(#arrow-accent)"/>
+  <text x="505" y="480" text-anchor="middle" font-size="12.5" font-weight="600" fill="#4338ca">Ciphertext moves directly between the browser and the bucket</text>
+  <text x="505" y="512" text-anchor="middle" font-size="12" fill="#4338ca">Resumable PUT in 8 MiB chunks · Signed GET, then decryption in the browser</text>
 </svg>
