@@ -76,6 +76,7 @@ load-bearing — don't remove or "simplify" without thinking about why.
 - **Kit 3 imports:** use `#lib/...` (Node subpath imports in `package.json`)
   with explicit `.ts` extensions. `$lib` no longer exists.
 - **`web/package-lock.json` and `docs/package-lock.json` are committed.** CI uses `npm ci`.
+- **Releases:** push a `vX.Y.Z` tag; `release.yaml` creates the GitHub release and dispatches the docs build, whose header badge shows the latest release (read at build time). Deploys don't depend on tags: every push to `main` deploys.
 - **Docs live in `docs/` (Starlight)** and publish to GitHub Pages via `docs.yaml`. Keep them in sync with behaviour changes, and keep them generic: site URL and base path come from the Pages config, not from hardcoded values.
 - **Don't search other customers' projects for older `populate_gdoc.py`,
   bootstrap scripts, or similar.** This project has its own canonical copies

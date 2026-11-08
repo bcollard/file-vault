@@ -20,12 +20,16 @@ Everything after `#` is the URL fragment. Browsers keep the fragment on the clie
 6. The browser calls `POST /api/shares/finalize`. The server checks that the stored object has the declared size, marks the share ready, and creates the first download token.
 7. The browser builds both links by appending the token and the key after `#`.
 
+![Share ready: the download link to send and the admin link to keep.](../../../assets/screenshots/share-ready.png)
+
 ## Downloading
 
 1. The recipient opens the download link. The page reads the token and the key from the fragment.
 2. It calls `POST /api/download/peek` with the token. This only checks the token: it doesn't consume a use. The page decrypts the metadata and shows the file name and size.
 3. The recipient clicks **Download**. The page calls `POST /api/download/burn`, which decrements the use count in a Firestore transaction and returns a signed Cloud Storage URL valid for 60 seconds.
 4. The browser streams the ciphertext from Cloud Storage, decrypts it record by record, checks that nothing was truncated or reordered, and saves the file under its original name.
+
+![Recipient page: decrypted file name, size, expiry, and the Download button.](../../../assets/screenshots/download.png)
 
 Link previews (Slack, Outlook Safe Links, iMessage) load the page but never click, so they can't use up a one-time link.
 
@@ -36,6 +40,8 @@ The admin link opens a console that shows the file name (decrypted with the key 
 - issue another download link with its own expiry and use count
 - revoke every active download link
 - delete the share, which removes the encrypted object and every token
+
+![Admin console: file details, issue a new link, download links table, and the danger zone.](../../../assets/screenshots/admin.png)
 
 ## Expiry
 
